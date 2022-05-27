@@ -3,8 +3,7 @@ package projectManagementSystem;
 import projectManagementSystem.Manage.Bugs;
 import projectManagementSystem.Manage.Project;
 import projectManagementSystem.Manage.Task;
-import projectManagementSystem.Manage.UserEdit;
-
+import projectManagementSystem.Manage.User_Edit;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 public class Manager {
@@ -33,7 +32,7 @@ public class Manager {
                     Project.main();
                     break;
                 case 2:
-                    UserEdit.main();
+                    User_Edit.main();
                     break;
                 case 3:
                     Task.main();

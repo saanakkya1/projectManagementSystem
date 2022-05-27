@@ -23,16 +23,16 @@ public class Task {
                     if(choice>=1 && choice<=5){
                         switch (choice) {
                             case 1:
-                                Project.main();
+                                Task.add();
                                 break;
                             case 2:
-                                UserEdit.main();
+                                Task.modify();
                                 break;
                             case 3:
-                                Task.main();
+                                Task.review();
                                 break;
                             case 4:
-                                Bugs.main();
+                                Task.close();
                                 break;
                             case 5: break;
                         }
@@ -53,7 +53,10 @@ public class Task {
 
 
 
-
+    public static void add(){}
+    public static void modify(){}
+    public static void review(){}
+    public static void close(){}
 
 
 

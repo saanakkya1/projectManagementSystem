@@ -3,7 +3,7 @@ package projectManagementSystem.Manage;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-public class UserEdit {
+public class User_Edit {
         public static void main(){
             try{
                 Scanner sc = new Scanner(System.in);
@@ -22,16 +22,16 @@ public class UserEdit {
                     if(choice>=1 && choice<=5){
                         switch (choice) {
                             case 1:
-                                Project.main();
+                                User_Edit.add();
                                 break;
                             case 2:
-                                UserEdit.main();
+                                User_Edit.modify();
                                 break;
                             case 3:
-                                Task.main();
+                                User_Edit.review();
                                 break;
                             case 4:
-                                Bugs.main();
+                                User_Edit.close();
                                 break;
                             case 5: break;
                         }
@@ -49,6 +49,9 @@ public class UserEdit {
                 main();
             }
         }
-
+    public static void add(){}
+    public static void modify(){}
+    public static void review(){}
+    public static void close(){}
     }
 
