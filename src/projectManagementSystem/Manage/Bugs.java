@@ -76,7 +76,7 @@ public class Bugs {
         stmt.setInt(4, sevr);
         System.out.println("1");
         int i = stmt.executeUpdate();
-        System.out.println("Successfully Added The Project");
+        System.out.println("Successfully Added The Bug");
         PreparedStatement stmt1= con.prepareStatement("select * from bug",TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
         ResultSet rs = stmt1.executeQuery();
         ResultSetMetaData rsmd = rs.getMetaData();

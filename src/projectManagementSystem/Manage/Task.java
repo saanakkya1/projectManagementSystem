@@ -1,7 +1,7 @@
 package projectManagementSystem.Manage;
 
 import projectManagementSystem.Main;
-
+import java.lang.String;
 import java.sql.*;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -10,7 +10,7 @@ import static java.sql.ResultSet.TYPE_SCROLL_SENSITIVE;
 
 public class Task {
 
-        public static void main(int user_id){
+        public static void main(int user_id) throws SQLException{
             try{
                 Scanner sc = new Scanner(System.in);
 
@@ -68,11 +68,11 @@ public class Task {
         String Task_name=sc.nextLine();
         System.out.println("Enter Task description :");
         String Task_description=sc.nextLine();
-        System.out.println("Enter project id of the bug :");
+        System.out.println("Enter project id of the Task :");
         int project_id =sc.nextInt();
         System.out.printf("Enter Status of Task %s\n",Task_name);
         int status = sc.nextInt();
-        String sql1 = "insert into bug(task_name,description,project_id,status) values (?,?,?,?);";
+        String sql1 = "insert into task(task_name,description,project_id,status) values (?,?,?,?);";
         PreparedStatement stmt = con.prepareStatement(sql1);
         stmt.setString(1, Task_name);
         stmt.setString(2, Task_description);
@@ -80,8 +80,8 @@ public class Task {
         stmt.setInt(4, status);
         System.out.println("1");
         int i = stmt.executeUpdate();
-        System.out.println("Successfully Added The Project");
-        PreparedStatement stmt1= con.prepareStatement("select * from bug",TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+        System.out.println("Successfully Added The Task");
+        PreparedStatement stmt1= con.prepareStatement("select * from task",TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
         ResultSet rs = stmt1.executeQuery();
         ResultSetMetaData rsmd = rs.getMetaData();
         for(int j = 1; i <= rsmd.getColumnCount(); i++)
