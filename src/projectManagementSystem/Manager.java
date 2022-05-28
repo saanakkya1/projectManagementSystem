@@ -2,8 +2,9 @@ package projectManagementSystem;
 
 import projectManagementSystem.Manage.Bugs;
 import projectManagementSystem.Manage.Project;
-import projectManagementSystem.Manage.Task;
-import projectManagementSystem.Manage.User_Edit;
+//import projectManagementSystem.Manage.Task;
+//import projectManagementSystem.Manage.User_Edit;
+import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 public class Manager {
@@ -11,11 +12,13 @@ public class Manager {
     public void CreateProject(){
         System.out.println("   ");
     }
-    public static void main(){
+    public static void main(int user_id){
         try{
             Scanner sc = new Scanner(System.in);
 
-        //System.out.println("From manager");
+/*        //System.out.println("From manager");
+            System.out.print("\033[H\033[2J");
+            System.out.flush();*/
         System.out.println("""
                 Enter your choice
                 \t1.Project Menu
@@ -25,25 +28,28 @@ public class Manager {
                 \t5.Exit
                 """);
         while(true){
-        int choice = sc.nextInt();
+int choice = 4;//sc.nextInt();
         if(choice>=1 && choice<=5){
             switch (choice) {
                 case 1:
-                    Project.main();
+                    Project.main(user_id);
                     break;
                 case 2:
-                    User_Edit.main();
+                    System.out.println("USER EDIT");
+                    //User_Edit.main();
                     break;
                 case 3:
-                    Task.main();
+                    System.out.println("TASK");
+//                    Task.main();
                     break;
                 case 4:
-                    Bugs.main();
+                    System.out.println("BUGS");
+                    Bugs.main(user_id);
                     break;
                 case 5: break;
             }
             if(choice==5)break;
-            main();
+            main(user_id);
             break;
             }
         else{
@@ -53,7 +59,9 @@ public class Manager {
         }
 catch (InputMismatchException e){
     System.out.println("Enter a valid input");
-    main();
-}
+    main(user_id);
+} catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
