@@ -44,19 +44,19 @@ public class Project {
     public static void main(int user_id){
             try{
                 System.out.println("""
-                        Enter your choice for Project Menu
                         \t1.Add Project
                         \t2.Edit Project Parameters
                         \t3.Review Project
                         \t4.Close Project
                         \t5.View Projects
                         \t6.Exit
+                        Enter your choice for Project Menu
                         """);
                 while(true){
                     int choice = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Choice"));
                     if(choice>=1 && choice<=6){
                         switch (choice) {
-                            case 1 -> Project.add(user_id);
+                            case 1 -> Project.add(user_id,table_name);
                             case 2 -> Project.Edit(user_id, table_name);
                             case 3 -> Project.review(table_name);
                             case 4 -> Project.close(table_name, 5);
@@ -78,12 +78,12 @@ public class Project {
                 e.printStackTrace();
             }
     }
-    public static void add(int user_id) throws SQLException {
+    public static void add(int user_id,String table_name) throws SQLException {
         try{
-            System.out.println("Enter Project name :");
+            System.out.printf("Enter %s name :\n",table_name);
             String project_name=GetInput.getValidInput(read.readLine(),"Project Name");
             System.out.printf("Enter Status of Project %s\n",project_name);
-            int status = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Status Of Project"));
+            int status = getChoice(5,"Status");
             String sql1 = "insert into project(project_name,created_by,status) values (?,?,?);";
             PreparedStatement stmt = con.prepareStatement(sql1);
             stmt.setString(1, project_name);
@@ -107,12 +107,12 @@ public class Project {
             System.out.println("\n\n\n");
             if(result==0){
                 System.out.println("Please Re-Enter the details again");
-                add(user_id);
+                add(user_id,table_name);
             }
             }
         catch(SQLException e){
             System.out.println("Please renter the Details without mistakes");
-            add(user_id);
+            add(user_id,table_name);
     } catch (IOException e) {
             System.out.println(e);
         }
@@ -128,7 +128,7 @@ public class Project {
         for(int i =0;i<col_labels.size();i++){
             System.out.printf("%d. %s\n",i+1, col_labels.get(i).replace("_"," ").toUpperCase());
         }
-        String col= col_labels.get(GetInput.getChoice(col_labels.size())-1);
+        String col= col_labels.get(GetInput.getChoice(col_labels.size(),"Choice")-1);
         System.out.printf("\nEnter Value of %s\n",col.toUpperCase());
         String query = "update "+table_name+" set "+col+"=? where "+table_name+"_id="+project_id ;
         PreparedStatement stmt = con.prepareStatement(query);
@@ -192,7 +192,7 @@ public class Project {
                     if (j == rsmd.getColumnCount()) System.out.printf("| %-20s |", rs.getString(j));
                     else System.out.printf("| %-20s ", rs.getString(j));
                 }
-                System.out.println("Do you want to close another " + table_name + "[y/N]?");
+                System.out.println("\nDo you want to close another " + table_name + "[y/N]?");
                 String close_another = GetInput.getValidInput(read.readLine(),"[y/N] ONLY");
                 if (close_another.equalsIgnoreCase("yes")) {
                     close("project", 5);

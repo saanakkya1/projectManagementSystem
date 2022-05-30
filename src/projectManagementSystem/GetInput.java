@@ -77,12 +77,12 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         }
         return val;
     }
-    public static int getChoice(int end) throws IOException {
+    public static int getChoice(int end,String field) throws IOException {
         String namePattern = "^(?=.*[1-"+end+"])(?=\\S+$).+$";
         String choice = read.readLine();
         while(!choice.matches(namePattern)){
-            System.out.println("Enter a valid name with numbers only!");
-            System.out.println("Enter Choice: ");
+            System.out.printf("Enter a valid %s with numbers [1-%d] only!\n",field,end);
+            System.out.printf("Enter %s :\n",field);
             choice = read.readLine();
 
         }
@@ -127,7 +127,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         return (Timestamp) date;
     }
 
-    void getConfirmation() throws IOException, SQLException {
+/*    void getConfirmation() throws IOException, SQLException {
         System.out.print("\n\tAre you sure that the details give above are correct? [y/N] ");
         String ch = read.readLine();
         while(!ch.equalsIgnoreCase("y") && !ch.equalsIgnoreCase("n")){
@@ -143,7 +143,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
             System.out.println("Rolling back the changes.....");
             con.rollback();
         }
-    }
+    }*/
     void getpassword() throws IOException{
         String namePattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
         String pass = read.readLine();
