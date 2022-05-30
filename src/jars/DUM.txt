@@ -63,3 +63,94 @@ public static void close(String table_name) throws SQLException {
         }
         }
 }
+
+
+
+
+
+
+
+
+
+/*try{
+            System.out.println("""
+                        Enter your choice for \s"""+table_name+"""
+                         table\s
+                        \t1.Add Project
+                        \t2.Edit Project Parameters
+                        \t3.Review Project
+                        \t4.Close Project
+                        \t5.View Projects
+                        \t6.Exit
+                        """);
+            while(true){
+                int choice = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Choice"));
+                if(choice>=1 && choice<=6){
+                    switch (choice) {
+                        case 1:
+                            Project.add(user_id);
+//                                Project.add(user_id);
+                            break;
+                        case 2:
+                            Project.Edit(user_id,"project");
+                            break;
+                        case 3:
+                            Project.review("project",false);
+                            break;
+                        case 4:
+                            Project.close("project",5);
+                            break;
+                        case 5: PrintDB(con,"project");
+                    }
+                    if(choice==6)break;
+                    main(user_id);
+                    break;
+                }
+                else{
+                    System.out.println("Enter a valid choice....");
+                }
+            }
+        }
+        catch (NumberFormatException|InputMismatchException e){
+            System.out.println("Enter a valid input....");
+            main(user_id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println(e);
+        }*/
+
+
+     /*public static void view() throws SQLException { //,int project_id
+             String sql = "select * from project";
+             PreparedStatement stmt = con.prepareStatement(sql,TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+             ResultSet rs = stmt.executeQuery();
+             ResultSetMetaData rsmd = rs.getMetaData();
+             StringBuilder sb = new StringBuilder();
+             rs.last();
+             int row_count= rs.getRow();
+             rs.beforeFirst();
+             for(int i = 1; i <= rsmd.getColumnCount(); i++)
+             {
+                 sb.append(String.format("| %-20s",rsmd.getColumnLabel(i)));
+             }
+             System.out.println(sb);
+     //        StringBuilder stringb = new StringBuilder();
+
+             for(int i = 1; i <= row_count; i++) {
+                 rs.next();
+
+                 for(int j =1;j<=rsmd.getColumnCount();j++) {
+                     System.out.printf("| %-20s", rs.getString(j));
+                 }
+                 System.out.println("");
+             }
+             System.out.println("\n\n\n");
+         }*/
+
+
+
+
+
+
+

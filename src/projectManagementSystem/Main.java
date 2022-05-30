@@ -1,5 +1,4 @@
 package projectManagementSystem;
-//import projectManagementSystem.*;
 import java.sql.*;
 import java.sql.Connection;
 import java.util.Scanner;
@@ -86,7 +85,7 @@ String pass = "123456789";//1sc.nextLine();//read_password();
                     } else {
                         System.out.println("Incorrect password Re-Enter Password Again...");
                     }
-                    //System.out.println("Logged In as:\t"+rs1.getString("first_name"));
+//                    System.out.printf("\nLogged In as:\t%s\n",rs1.getString("first_name"));
                 }
                 //break;
             }
