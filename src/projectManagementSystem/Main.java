@@ -56,7 +56,7 @@ String email ="nbeves0@uol.com.br";// sc.nextLine();
             if (rs.next()) {
                 while (true) {
                     System.out.println("Enter password");
-String pass = "123456789";//1sc.nextLine();//read_password();
+String pass = "Beves@Nevile";//1sc.nextLine();//read_password();
                     String sql1 = "Select * from user where email=? and password=?";
                     PreparedStatement stmt1 = con.prepareStatement(sql1);
                     stmt1.setString(1, email);
@@ -65,17 +65,17 @@ String pass = "123456789";//1sc.nextLine();//read_password();
                     if (rs1.next()) {
                         System.out.println("Logged In as:\t" + rs1.getString("first_name"));
                         switch (rs1.getInt("role_id")) {
-                            case 1 : {
+                            case 1 -> {
                                 User.main();
                                 break;
                             }
-                            case 2 : {
+                            case 2 -> {
                                 System.out.print("\033[H\033[2J");
                                 System.out.flush();
                                 Manager.main(rs1.getInt("user_id"));
                                 break;
                             }
-                            case 3 : {
+                            case 3 -> {
                                 Admin.main();
                                 break;
                             }

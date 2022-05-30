@@ -5,6 +5,8 @@ import projectManagementSystem.Connect_DB.Connect_DB;
 import projectManagementSystem.Manage.Project;
 import projectManagementSystem.Manage.Task;
 import projectManagementSystem.Manage.User_Edit;
+
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
@@ -41,8 +43,9 @@ public class Manager {
                 \t5.Exit
                 """);
         while(true){
-int choice = 1;//sc.nextInt();
-        if(choice>=1 && choice<=5){
+int choice = projectManagementSystem.GetInput.getChoice(5,"Choice");
+
+            if(choice>=1 && choice<=5){
             switch (choice) {
                 case 1:
                     Project.main(user_id);
@@ -73,6 +76,8 @@ int choice = 1;//sc.nextInt();
 catch (InputMismatchException | SQLException e){
     System.out.println("Enter a valid input");
     main(user_id);
-}
+} catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

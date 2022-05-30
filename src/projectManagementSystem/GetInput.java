@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.*;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -78,15 +77,14 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         return val;
     }
     public static int getChoice(int end,String field) throws IOException {
-        String namePattern = "^(?=.*[1-"+end+"])(?=\\S+$).+$";
-        String choice = read.readLine();
+        String namePattern = String.format("^[1-%d]\\s*$",end);// "^(?=.*[1-"+end+"])(?=\\S+$).+$";
+        String choice = read.readLine().strip();
         while(!choice.matches(namePattern)){
             System.out.printf("Enter a valid %s with numbers [1-%d] only!\n",field,end);
             System.out.printf("Enter %s :\n",field);
             choice = read.readLine();
-
         }
-
+//        System.out.println(choice);
         return Integer.parseInt(choice);
 
     }
@@ -94,14 +92,43 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         String namePattern = "^(?=.*\\d)(?=\\S+$).+$";
         String Num = read.readLine();
         while(!Num.matches(namePattern)){
-            System.out.println("Enter a numbers only!");
-            System.out.printf("Enter %s:\n",field);
+//            System.out.println("Enter a numbers only!");
+            System.out.printf("Enter %s:\n [NUMBERS ONLY]",field);
             Num = read.readLine();
 
         }
-        System.out.println(Num);
+//        System.out.println(Num);
         return Integer.parseInt(Num);
 
+    }
+    public static boolean checkExists(Connection con,String table_name,int id) throws SQLException {
+        String query = String.format("select * from %s where %s_id=%d limit 1",table_name,table_name,id);
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+        return rs.next();
+    }
+    public static int checkId(Connection con,String table_name,String field) throws SQLException, IOException {
+        int id = getInt(field);
+        while(!checkExists(con,table_name,id)){
+            System.out.printf("Enter a valid %s \n",field);
+            id = getInt(field);
+        }
+        return id;
+    }
+    public static boolean checkClosed(Connection con,String table_name,String s,int id) throws SQLException {
+        String query = String.format("select * from %s where %s_id=%d and %s <> 5",table_name,table_name,id,s);
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+        return rs.next();
+    }
+
+    public static int checkIfClosed(Connection con,String table_name,String field,String s) throws SQLException, IOException {
+        int id = getInt(field);
+        while(!checkClosed(con,table_name,s,id)){
+            System.out.printf("Enter a valid %s \n",field);
+            id = getInt(field);
+        }
+        return id;
     }
     public static String getName() throws IOException{
         String namePattern = "^[\\p{L} .'-]+$";
@@ -115,7 +142,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         return Name;
     }
 //    ^\d{4}-\d{2}-\d{2}$
-    public static Timestamp getDate() throws IOException, ParseException {
+    public static Timestamp getTimestamp() throws IOException, ParseException {
         String namePattern = "^\\d{4}-\\d{2}-\\d{2}$";
         String d = read.readLine();
         while(!d.matches(namePattern)){
@@ -125,6 +152,16 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         }
         Date date = new SimpleDateFormat("yyyy-MM-dd").parse(d);
         return (Timestamp) date;
+    }
+    public static String getDate() throws IOException, ParseException {
+        String namePattern = "^\\d{4}-\\d{2}-\\d{2}$";
+        String d = read.readLine();
+        while(!d.matches(namePattern)){
+            System.out.println("Enter a valid Date in [YYYY-MM-DD ] format only!");
+            System.out.println("Enter Date: ");
+            d = read.readLine();
+        }
+        return  d;
     }
 
 /*    void getConfirmation() throws IOException, SQLException {

@@ -15,7 +15,7 @@ import static projectManagementSystem.Connect_DB.Connect_DB.*;
 import static projectManagementSystem.GetInput.*;
 
 public class Project {
-    private static String table_name = "project";
+    private static final String table_name = "project";
     private static int project_id;
     private String project_name;
     private int project_created_by;
@@ -40,7 +40,6 @@ public class Project {
         }
     }
 
-
     public static void main(int user_id){
             try{
                 System.out.println("""
@@ -56,10 +55,25 @@ public class Project {
                     int choice = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Choice"));
                     if(choice>=1 && choice<=6){
                         switch (choice) {
-                            case 1 -> Project.add(user_id,table_name);
-                            case 2 -> Project.Edit(user_id, table_name);
-                            case 3 -> Project.review(table_name);
-                            case 4 -> Project.close(table_name, 5);
+                            case 1 -> {
+                                Project.add(user_id,table_name);
+                                                            }
+                            case 2 -> {
+                                System.out.println("Enter" + table_name + " id of the " + table_name + " to Edit");
+                                int project_id = checkId(con,table_name,"PROJECT ID");
+                                Project.Edit(user_id, table_name,project_id);
+
+                            }
+                            case 3 -> {
+                                System.out.println("Enter" + table_name + " id of the " + table_name + " to Edit");
+                                int project_id = checkId(con,table_name,"PROJECT ID");
+                                Project.review(table_name);
+                            }
+                            case 4 -> {
+                                System.out.println("Enter" + table_name + " id of the " + table_name + " to Edit");
+                                int project_id = checkId(con,table_name,"PROJECT ID");
+                                Project.close(table_name, 5,project_id);
+                            }
                             case 5 -> PrintDB(con, table_name);
                         }
                         if(choice==6)break;
@@ -97,7 +111,7 @@ public class Project {
             ResultSetMetaData rsmd = rs.getMetaData();
             for(int i = 1; i <= rsmd.getColumnCount(); i++)
             {
-                System.out.printf(String.format("| %-20s",rsmd.getColumnLabel(i)));
+                System.out.printf("| %-20s",rsmd.getColumnLabel(i).toUpperCase().replace("_"," "));
             }
             System.out.println();
             rs.last();
@@ -114,42 +128,45 @@ public class Project {
             System.out.println("Please renter the Details without mistakes");
             add(user_id,table_name);
     } catch (IOException e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 
-    public static void Edit(int user_id,String table_name) throws SQLException, IOException, ParseException {
-        System.out.println("Enter project id of the project to review");
-        int project_id = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Project ID"));
-        col_labels.removeIf(e->(e.equalsIgnoreCase("reported_time")||e.equalsIgnoreCase("created_by")||e.equalsIgnoreCase(table_name+"_id")||e.equalsIgnoreCase("created_date")));
+    public static void Edit(int user_id, String table_name, int project_id) throws SQLException, IOException, ParseException {
+
+        col_labels.removeIf(e -> (e.equalsIgnoreCase("reported_time") || e.equalsIgnoreCase("created_by") || e.equalsIgnoreCase(table_name + "_id") || e.equalsIgnoreCase("created_date")));
 
 //        System.out.println(labels_types);
         System.out.println("Which Field Do you Want to Edit");
-        for(int i =0;i<col_labels.size();i++){
-            System.out.printf("%d. %s\n",i+1, col_labels.get(i).replace("_"," ").toUpperCase());
+        int i;
+        for (i = 0; i < col_labels.size(); i++) {
+            System.out.printf("%d. %s\n", i + 1, col_labels.get(i).replace("_", " ").toUpperCase());
         }
-        String col= col_labels.get(GetInput.getChoice(col_labels.size(),"Choice")-1);
-        System.out.printf("\nEnter Value of %s\n",col.toUpperCase());
-        String query = "update "+table_name+" set "+col+"=? where "+table_name+"_id="+project_id ;
+        System.out.printf("%d. Exit\n", i);
+        int choice = getChoice(col_labels.size(), "Choice") - 1;
+        if (choice == i) {
+            return;
+        }
+        String col = col_labels.get(choice);
+        System.out.printf("\nEnter Value of %s\n", col.toUpperCase());
+        String query = "update " + table_name + " set " + col + "=? where " + table_name + "_id=" + Project.project_id;
         PreparedStatement stmt = con.prepareStatement(query);
-        if (labels_types.get(col).equalsIgnoreCase("INT")||labels_types.get(col).equalsIgnoreCase("TINYINT")){
-            stmt.setInt(1,getInt(col));
-        }
-        else if (labels_types.get(col).equalsIgnoreCase("VARCHAR")) {
-            stmt.setString(1,getValidInput(read.readLine(),col));
-        }
-        else if (labels_types.get(col).equalsIgnoreCase("timestamp")) {
-            stmt.setTimestamp(1,getDate());
+        if (labels_types.get(col).equalsIgnoreCase("INT")) {
+            stmt.setInt(1, getInt(col));
+        } else if (labels_types.get(col).equalsIgnoreCase("TINYINT")) {
+            stmt.setInt(1, getChoice(5, col));
+        } else if (labels_types.get(col).equalsIgnoreCase("VARCHAR")) {
+            stmt.setString(1, getValidInput(read.readLine(), col));
+        } else if (labels_types.get(col).equalsIgnoreCase("timestamp")) {
+            stmt.setTimestamp(1, getTimestamp());
         }
         stmt.executeUpdate();
         getConfirmation(con);
-            }
+    }
     public static void review(String table_name) throws IOException {
-        System.out.println("Enter project id of the project to review");
-        int project_id = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Project ID"));
         try{
 
-            String sqlqry = "select * from " +table_name+ " where "+table_name+"_id=? and status <> 5";
+            String sqlqry = "select project_id,project_name,created_date,created_by,status_title from " +table_name+ " join status on status = status_id where "+table_name+"_id=? and status <> 5";
             PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, project_id);
             ResultSet rs = stmnt.executeQuery();
@@ -163,15 +180,12 @@ public class Project {
             System.out.println();
         }
         catch (InputMismatchException | NumberFormatException | SQLException e){
-            System.out.println("Enter a valid Project_id which is not closed");
+            System.out.println("Enter a valid "+table_name+"_id which is not closed");
             review(table_name);
         }
     }
-    public static void close(String table_name,int status) throws SQLException {
+    public static void close(String table_name, int status, int project_id) throws SQLException {
         try {
-            System.out.println("Enter project id");
-
-            int project_id = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Project ID"));
             String sqlqry = "select * from " + table_name + " where " + table_name + "_id=?";
             PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, project_id);
@@ -181,7 +195,7 @@ public class Project {
             rs.next();
             String query = "update " + table_name + " set status = " + status + " where " + table_name + "_id=?";
             PreparedStatement statement = con.prepareStatement(query);
-            statement.setInt(1, project_id);
+            statement.setInt(1, Project.project_id);
             int result = statement.executeUpdate();
             if (result > 0) {
                 System.out.println("\nAre You Sure to Close The " + table_name + " [y/N]");
@@ -195,15 +209,15 @@ public class Project {
                 System.out.println("\nDo you want to close another " + table_name + "[y/N]?");
                 String close_another = GetInput.getValidInput(read.readLine(),"[y/N] ONLY");
                 if (close_another.equalsIgnoreCase("yes")) {
-                    close("project", 5);
+                    close("project", 5, project_id);
                 }
             } else {
-                System.out.println("Enter " + table_name.toUpperCase() + " Id Again....");
+                System.out.println("Enter " + table_name.toUpperCase() + " Id Again....");close("project",5, project_id);
             }
         }
         catch(InputMismatchException|IOException e ){
             System.out.println("Enter a valid project_id");
-            close("project",5);
+            close("project",5, project_id);
     }
     }
     }
