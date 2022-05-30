@@ -1,5 +1,9 @@
 package projectManagementSystem.Manage;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.sql.*;
 import java.util.*;
 
@@ -7,8 +11,8 @@ import static java.sql.ResultSet.TYPE_SCROLL_SENSITIVE;
 import static projectManagementSystem.Connect_DB.Connect_DB.*;
 
 public class Project {
+    static BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
     static Connection con;
-
     static {
         try {
             con = ConnectDB();
@@ -52,7 +56,7 @@ public class Project {
                                 Project.review("project");
                                 break;
                             case 4:
-                                Project.close("project");
+                                Project.close("project",5);
                                 break;
                             case 5: PrintDB(con,"project");
                         }
@@ -225,60 +229,53 @@ public class Project {
             review("project");
         }
     }
-    public static void close(String table_name) throws SQLException {
+    public static void close(String table_name,int status) throws SQLException {
         try{
             System.out.println("Enter project id");
-            int project_id = sc.nextInt();
-            String sqlqry = "select * from " +table_name+ " where "+table_name+"_id=?";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry);
-            stmnt.setInt(1, project_id);
-            ResultSet rs = stmnt.executeQuery();
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int col_count = rsmd.getColumnCount();
-            rs.next();
-            String query = String.format("insert into project_closed values ("+"?,".repeat(col_count)+" );").replaceFirst(", ","");
-            PreparedStatement stmt = con.prepareStatement(query);
-            for (int i = 1; i <=col_count; i++) {
-                String col_type = rsmd.getColumnTypeName(i);
-                //stmt.setString(i,rsmd.getColumnName(i));
-                if (col_type.equalsIgnoreCase("INT")){
-                    stmt.setInt(i,rs.getInt(i));
-                }
-                if (col_type.equalsIgnoreCase("TINYINT")){
-                    stmt.setInt(i,rs.getInt(i));
-                }
-                else if (col_type.equalsIgnoreCase("VARCHAR")) {
-                    stmt.setString(i,rs.getString(i));
-                }
-                else if (col_type.equalsIgnoreCase("timestamp")) {
-                    stmt.setTimestamp(i,rs.getTimestamp(i));
-                }
-            }
-            String[] state = stmt.toString().split(": ",2)[1].split("values ");
-            String s = state[0].replace("'","`")+"values "+state[1];
-            System.out.println(s);
-            Statement statement = con.createStatement();
-            int result = statement.executeUpdate(s);
-            if(result==1){
-                for(int j =1;j<=col_count;j++) {
-                    if(j == rsmd.getColumnCount()) System.out.printf("| %-20s |", rs.getString(j));
-                    else System.out.printf("| %-20s ", rs.getString(j));
-                }
-                System.out.println("\nAre You Sure to Close The "+ table_name +" [yes/NO]");
-                String is_sure = sc.next();
-                if(is_sure.equalsIgnoreCase("yes")) con.commit();
-                con.rollback();
+            while(true) {
+                int project_id = Integer.parseInt(read.readLine());
+                System.out.println(project_id);
+                String sqlqry = "select * from "+table_name+" where "+table_name+"_id=?";
+                PreparedStatement stmnt = con.prepareStatement(sqlqry);
+                stmnt.setInt(1, project_id);
+                System.out.println(stmnt);
+                ResultSet rs = stmnt.executeQuery();
+                ResultSetMetaData rsmd = rs.getMetaData();
+                int col_count = rsmd.getColumnCount();
+                rs.next();
+                String query = "update " + table_name + " set status = " + status +" where "+table_name+"_id=?";
+                PreparedStatement statement = con.prepareStatement(query);
+                statement.setInt(1,project_id);
+                int result = statement.executeUpdate();
+                System.out.println(result);
+                if (result >0) {
+                    for (int j = 1; j <= col_count; j++) {
+                        if (j == rsmd.getColumnCount()) System.out.printf("| %-20s |", rs.getString(j));
+                        else System.out.printf("| %-20s ", rs.getString(j));
+                    }
+                    System.out.println("\nAre You Sure to Close The " + table_name + " [yes/NO]");
+                    String is_sure = sc.next();
+                    if (is_sure.equalsIgnoreCase("yes")) con.commit();
+                    else con.rollback();
+                    System.out.println("Do you want to close another "+table_name+ "[yes/NO]?");
+                    String close_another = sc.next();
+                    if (close_another.equalsIgnoreCase("yes")) {
+                        close("project",5);break;
+                    }
 
-            }
-            else{
-                System.out.println("Enter "+table_name.toUpperCase()+" Id Again....");
+                    else break;
 
-            }
+                }
+                else {
+                    System.out.println("Enter " + table_name.toUpperCase() + " Id Again....");
 
+                }
+                break;
             }
-        catch(InputMismatchException e ){
+            }
+        catch(InputMismatchException|IOException e ){
             System.out.println("Enter a valid project_id");
-            close("project");
+            close("project",5);
     }
     }
     }
