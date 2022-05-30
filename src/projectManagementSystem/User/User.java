@@ -1,4 +1,4 @@
-package projectManagementSystem;
+package projectManagementSystem.User;
 
 public class User {
 public static void main(){

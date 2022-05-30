@@ -1,14 +1,27 @@
-package projectManagementSystem;
+package projectManagementSystem.Manage;
 
-//import projectManagementSystem.Manage.Bugs;
-//import projectManagementSystem.Manage.Project;
+import projectManagementSystem.Manage.Bugs;
+import projectManagementSystem.Connect_DB.Connect_DB;
+import projectManagementSystem.Manage.Project;
 import projectManagementSystem.Manage.Task;
-//import projectManagementSystem.Manage.User_Edit;
+import projectManagementSystem.Manage.User_Edit;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-public class Manager {
 
+import static projectManagementSystem.Connect_DB.Connect_DB.ConnectDB;
+
+public class Manager {
+    static Connection con;
+    static {
+        try {
+            con = ConnectDB();
+            con.setAutoCommit(false);
+        } catch (SQLException e) {
+            System.out.println("[-] Database Not Connected Please Make sure The DB server is running...");
+        }
+    }
     public void CreateProject(){
         System.out.println("   ");
     }
@@ -28,15 +41,15 @@ public class Manager {
                 \t5.Exit
                 """);
         while(true){
-int choice = 3;//sc.nextInt();
+int choice = 1;//sc.nextInt();
         if(choice>=1 && choice<=5){
             switch (choice) {
                 case 1:
-//                    Project.main(user_id);
+                    Project.main(user_id);
                     break;
                 case 2:
                     System.out.println("USER EDIT");
-                    //User_Edit.main();
+                    User_Edit.main();
                     break;
                 case 3:
                     System.out.println("TASK");
@@ -44,7 +57,7 @@ int choice = 3;//sc.nextInt();
                     break;
                 case 4:
                     System.out.println("BUGS");
-//                    Bugs.main(user_id);
+                    Bugs.main(user_id);
                     break;
                 case 5: break;
             }
@@ -57,11 +70,9 @@ int choice = 3;//sc.nextInt();
         }
         }
         }
-catch (InputMismatchException e){
+catch (InputMismatchException | SQLException e){
     System.out.println("Enter a valid input");
     main(user_id);
-} catch (SQLException e) {
-            e.printStackTrace();
-        }
+}
     }
 }

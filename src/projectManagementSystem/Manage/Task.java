@@ -7,9 +7,21 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import static java.sql.ResultSet.TYPE_SCROLL_SENSITIVE;
+import static projectManagementSystem.Connect_DB.Connect_DB.ConnectDB;
+import static projectManagementSystem.Connect_DB.Connect_DB.PrintDB;
 
 public class Task {
+    static Connection con;
+    static Scanner sc = new Scanner(System.in);
+    static {
+        try {
+            con = ConnectDB();
+            con.setAutoCommit(false);
+        } catch (SQLException e) {
+            System.out.println("[-] Database Not Connected Please Make sure The DB server is running...");
 
+        }
+    }
         public static void main(int user_id) throws SQLException{
             try{
                 Scanner sc = new Scanner(System.in);
@@ -38,11 +50,11 @@ public class Task {
                                 Task.review();
                                 break;
                             case 4:
-                                Task.close();
+                                Task.close("task");
                                 break;
-                            case 5: break;
+                            case 5: PrintDB(con,"task");
                         }
-                        if(choice==5)break;
+                        if(choice==6)break;
                         main(user_id);
                         break;
                     }
@@ -63,7 +75,6 @@ public class Task {
 
     public static void add(int user_id) throws SQLException {
         Scanner sc = new Scanner(System.in);
-        Connection con = Main.ConnectDB();
         System.out.println("Enter Task name :");
         String Task_name=sc.nextLine();
         System.out.println("Enter Task description :");
@@ -102,32 +113,57 @@ public class Task {
     }
     public static void modify(){}
     public static void review(){}
-    public static void close(){}
-
-    public static void view() throws SQLException { //,int project_id
-        String sql = "select * from task";
-        Connection con = Main.ConnectDB();
-        PreparedStatement stmt = con.prepareStatement(sql,TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-        ResultSet rs = stmt.executeQuery();
+    public static void close(String table_name) throws SQLException {
+        System.out.println("Enter project id");
+        int project_id = sc.nextInt();
+        String sqlqry = "select * from " +table_name+ " where "+table_name+"_id=?";
+        PreparedStatement stmnt = con.prepareStatement(sqlqry);
+        stmnt.setInt(1, project_id);
+        ResultSet rs = stmnt.executeQuery();
         ResultSetMetaData rsmd = rs.getMetaData();
-        StringBuilder sb = new StringBuilder();
-        rs.last();
-        int row_count= rs.getRow();
-        rs.beforeFirst();
-        for(int i = 1; i <= rsmd.getColumnCount(); i++)
-        {
-            sb.append(String.format("| %-20s",rsmd.getColumnLabel(i)));
-        }
-        System.out.println(sb);
-        for(int i = 1; i <= row_count; i++) {
-            rs.next();
-
-            for(int j =1;j<=rsmd.getColumnCount();j++) {
-                System.out.printf("| %-20s", rs.getString(j));
+        int col_count = rsmd.getColumnCount();
+        rs.next();
+        String query = String.format("insert into project_closed values ("+"?,".repeat(col_count)+" );").replaceFirst(", ","");
+        PreparedStatement stmt = con.prepareStatement(query);
+        for (int i = 1; i <=col_count; i++) {
+            String col_type = rsmd.getColumnTypeName(i);
+            //stmt.setString(i,rsmd.getColumnName(i));
+            if (col_type.equalsIgnoreCase("INT")){
+                stmt.setInt(i,rs.getInt(i));
             }
-            System.out.println("");
+            if (col_type.equalsIgnoreCase("TINYINT")){
+                stmt.setInt(i,rs.getInt(i));
+            }
+            else if (col_type.equalsIgnoreCase("VARCHAR")) {
+                stmt.setString(i,rs.getString(i));
+            }
+            else if (col_type.equalsIgnoreCase("timestamp")) {
+                stmt.setTimestamp(i,rs.getTimestamp(i));
+            }
         }
-        System.out.println("\n\n\n");
+        String[] state = stmt.toString().split(": ",2)[1].split("values ");
+        String s = state[0].replace("'","`")+"values "+state[1];
+        System.out.println(s);
+        Statement statement = con.createStatement();
+        int result = statement.executeUpdate(s);
+        if(result==1){
+            for(int j =1;j<=col_count;j++) {
+                if(j == rsmd.getColumnCount()) System.out.printf("| %-20s |", rs.getString(j));
+                else System.out.printf("| %-20s ", rs.getString(j));
+            }
+            System.out.println("\nAre You Sure to Close The "+ table_name +" [yes/NO]");
+            String is_sure = sc.next();
+            if(is_sure.equalsIgnoreCase("yes")) con.commit();
+            con.rollback();
+
+        }
+        else{
+            System.out.println("Enter "+table_name.toUpperCase()+" Id Again....");
+
+        }
+
     }
+
+
 
 }

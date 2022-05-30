@@ -1,18 +1,121 @@
 package projectManagementSystem.Manage;
 
-import projectManagementSystem.Main;
-
 import java.sql.*;
-import java.util.InputMismatchException;
-import java.util.Scanner;
+import java.util.*;
 
 import static java.sql.ResultSet.TYPE_SCROLL_SENSITIVE;
+import static projectManagementSystem.Connect_DB.Connect_DB.*;
 
 public class Project {
-        public static void main(int user_id){
-            try{
-                Scanner sc = new Scanner(System.in);
+    static Connection con;
 
+    static {
+        try {
+            con = ConnectDB();
+            con.setAutoCommit(false);
+
+        } catch (SQLException e) {
+            System.out.println("[-] Database Not Connected Please Make sure The DB server is running...");
+        }
+    }
+
+
+    static int project_id;
+    static String project_name;
+    static int project_created_by;
+    static Timestamp created_date;
+    static int project_status;
+    static Scanner sc = new Scanner(System.in);
+    public static void main(int user_id){
+            try{
+                System.out.println("""
+                        Enter your choice for Project Menu
+                        \t1.Add Project
+                        \t2.Modify Project
+                        \t3.Review Project
+                        \t4.Close Project
+                        \t5.View Projects
+                        \t6.Exit
+                        """);
+                while(true){
+                    int choice = sc.nextInt();
+                    if(choice>=1 && choice<=6){
+                        switch (choice) {
+                            case 1:
+                                Project.add(user_id);
+//                                Project.add(user_id);
+                                break;
+                            case 2:
+                                Project.modify(user_id);
+                                break;
+                            case 3:
+                                Project.review("project");
+                                break;
+                            case 4:
+                                Project.close("project");
+                                break;
+                            case 5: PrintDB(con,"project");
+                        }
+                        if(choice==6)break;
+                        main(user_id);
+                        break;
+                    }
+                    else{
+                        System.out.println("Enter a valid choice....");
+                    }
+                }
+            }
+            catch (InputMismatchException e){
+                System.out.println("Enter a valid input");
+                main(user_id);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    public static void add(int user_id) throws SQLException {
+        try{
+            System.out.println("Enter Project name :");
+            String project_name=sc.nextLine();
+            System.out.printf("Enter Status of Project %s\n",project_name);
+            int status = sc.nextInt();
+            String sql1 = "insert into project(project_name,created_by,status) values (?,?,?);";
+            PreparedStatement stmt = con.prepareStatement(sql1);
+            stmt.setString(1, project_name);
+            stmt.setInt(2, user_id);
+            stmt.setInt(3, status);
+            int result = stmt.executeUpdate();
+            System.out.println("Successfully Added The Project");
+            PreparedStatement stmt1= con.prepareStatement("select * from project",TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+            ResultSet rs = stmt1.executeQuery();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            for(int i = 1; i <= rsmd.getColumnCount(); i++)
+            {
+                System.out.printf(String.format("| %-20s",rsmd.getColumnLabel(i)));
+            }
+            System.out.println("");
+            rs.last();
+            for(int j =1;j<=rsmd.getColumnCount();j++) {
+                System.out.printf("| %-20s", rs.getString(j));
+            }
+            System.out.println("\n\n\n");
+            if(result==0){
+                System.out.println("Please Re-Enter the details again");
+                add(user_id);
+            }
+            }
+        catch(SQLException e){
+            System.out.println("Please renter the Details without mistakes");
+            add(user_id);
+    }
+;
+    }
+
+    public static void modify(int user_id)throws SQLException{
+        /*try{
+            Scanner sc = new Scanner(System.in);
+            view();
+        System.out.println("Enter Project Id to modify :");
+        int project_id=sc.nextInt();
                 //System.out.println("From manager");
                 System.out.println("""
                         Enter your choice for Project Menu
@@ -56,46 +159,6 @@ public class Project {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
-    public static void add(int user_id) throws SQLException {
-        Scanner sc = new Scanner(System.in);
-        Connection con = Main.ConnectDB();
-        System.out.println("Enter Project name :");
-        String project_name=sc.nextLine();
-        System.out.printf("Enter Status of Project %s\n",project_name);
-        int status = sc.nextInt();
-        String sql1 = "insert into project(project_name,created_by,status) values (?,?,?);";
-        PreparedStatement stmt = con.prepareStatement(sql1);
-        stmt.setString(1, project_name);
-        stmt.setInt(2, user_id);
-        stmt.setInt(3, status);
-        int i = stmt.executeUpdate();
-        System.out.println("Successfully Added The Project");
-        PreparedStatement stmt1= con.prepareStatement("select * from project",TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
-        ResultSet rs = stmt1.executeQuery();
-        ResultSetMetaData rsmd = rs.getMetaData();
-        for(int j = 1; i <= rsmd.getColumnCount(); i++)
-        {
-            System.out.printf(String.format("| %-20s",rsmd.getColumnLabel(i)));
-        }
-        System.out.println("");
-        rs.last();
-        for(int j =1;j<=rsmd.getColumnCount();j++) {
-            System.out.printf("| %-20s", rs.getString(j));
-        }
-        System.out.println("\n\n\n");
-        if(i==0){
-            System.out.println("Please Re-Enter the details again");
-            add(user_id);
-        }
-;
-    }
-
-    public static void modify(int user_id)throws SQLException{
-        Scanner sc = new Scanner(System.in);
-        Connection con = Main.ConnectDB();
-        System.out.println("Enter Project name :");
-        String project_name=sc.nextLine();
         System.out.printf("Enter Status of Project %s\n",project_name);
         int status = sc.nextInt();
         String sql1 = "insert into project(project_name,created_by,status) values (?,?,?);";
@@ -108,12 +171,19 @@ public class Project {
         if(i==0){
             System.out.println("Please Re-Enter the details again");
             add(user_id);
-        }
+        }*/
+
 
     }
-    public static void view() throws SQLException { //,int project_id
+
+
+
+
+
+
+
+    /*public static void view() throws SQLException { //,int project_id
         String sql = "select * from project";
-        Connection con = Main.ConnectDB();
         PreparedStatement stmt = con.prepareStatement(sql,TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
         ResultSet rs = stmt.executeQuery();
         ResultSetMetaData rsmd = rs.getMetaData();
@@ -137,9 +207,81 @@ public class Project {
             System.out.println("");
         }
         System.out.println("\n\n\n");
+    }*/
+    public static void review(String table_name){
+        try{
+            System.out.println("Enter project id of the project to review");
+            int project_id = sc.nextInt();
+            String sqlqry = "select * from " +table_name+ " where "+table_name+"_id=?";
+            PreparedStatement stmnt = con.prepareStatement(sqlqry);
+            stmnt.setInt(1, project_id);
+            ResultSet rs = stmnt.executeQuery();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int col_count = rsmd.getColumnCount();
+            rs.next();
+        }
+        catch (InputMismatchException | SQLException e){
+            System.out.println("Enter a valid Project_id");
+            review("project");
+        }
     }
-    public static void review(){}
-    public static void close(){}
+    public static void close(String table_name) throws SQLException {
+        try{
+            System.out.println("Enter project id");
+            int project_id = sc.nextInt();
+            String sqlqry = "select * from " +table_name+ " where "+table_name+"_id=?";
+            PreparedStatement stmnt = con.prepareStatement(sqlqry);
+            stmnt.setInt(1, project_id);
+            ResultSet rs = stmnt.executeQuery();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int col_count = rsmd.getColumnCount();
+            rs.next();
+            String query = String.format("insert into project_closed values ("+"?,".repeat(col_count)+" );").replaceFirst(", ","");
+            PreparedStatement stmt = con.prepareStatement(query);
+            for (int i = 1; i <=col_count; i++) {
+                String col_type = rsmd.getColumnTypeName(i);
+                //stmt.setString(i,rsmd.getColumnName(i));
+                if (col_type.equalsIgnoreCase("INT")){
+                    stmt.setInt(i,rs.getInt(i));
+                }
+                if (col_type.equalsIgnoreCase("TINYINT")){
+                    stmt.setInt(i,rs.getInt(i));
+                }
+                else if (col_type.equalsIgnoreCase("VARCHAR")) {
+                    stmt.setString(i,rs.getString(i));
+                }
+                else if (col_type.equalsIgnoreCase("timestamp")) {
+                    stmt.setTimestamp(i,rs.getTimestamp(i));
+                }
+            }
+            String[] state = stmt.toString().split(": ",2)[1].split("values ");
+            String s = state[0].replace("'","`")+"values "+state[1];
+            System.out.println(s);
+            Statement statement = con.createStatement();
+            int result = statement.executeUpdate(s);
+            if(result==1){
+                for(int j =1;j<=col_count;j++) {
+                    if(j == rsmd.getColumnCount()) System.out.printf("| %-20s |", rs.getString(j));
+                    else System.out.printf("| %-20s ", rs.getString(j));
+                }
+                System.out.println("\nAre You Sure to Close The "+ table_name +" [yes/NO]");
+                String is_sure = sc.next();
+                if(is_sure.equalsIgnoreCase("yes")) con.commit();
+                con.rollback();
 
-}
+            }
+            else{
+                System.out.println("Enter "+table_name.toUpperCase()+" Id Again....");
+
+            }
+
+            }
+        catch(InputMismatchException e ){
+            System.out.println("Enter a valid project_id");
+            close("project");
+    }
+    }
+    }
+
+
 

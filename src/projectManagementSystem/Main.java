@@ -4,19 +4,25 @@ import java.sql.*;
 import java.sql.Connection;
 import java.util.Scanner;
 import java.io.Console;
-import projectManagementSystem.*;
-public class Main {
-    static final String     DB_NAME     = System.getenv("DB_NAME");
-    static final String     DB_HOST     = System.getenv("DB_HOST");
-    static final String     UNAME       = System.getenv("UNAME");
-    static final String     PASS        = System.getenv("PASS");
 
-    public static Connection ConnectDB() throws SQLException {
-        String DB_URL = "jdbc:mysql://"+DB_HOST+"/"+DB_NAME;
-        //System.out.println("Established connection to MySql DB Successfully....");
-        return DriverManager.getConnection(DB_URL,UNAME,PASS);
+import projectManagementSystem.Admin.Admin;
+import projectManagementSystem.Manage.Manager;
+import projectManagementSystem.User.User;
+
+import static projectManagementSystem.Connect_DB.Connect_DB.ConnectDB;
+
+public class Main {
+    static Connection con;
+
+    static {
+        try {
+            con = ConnectDB();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
-/*
+
+    /*
 * nbeves0@uol.com.br --> manager
 * pdowbakinj@scribd.com --> Admin
 * kfaullh@yolasite.com --> user
@@ -37,7 +43,7 @@ public class Main {
     }
     public static void main(String[] args) throws SQLException {
         Scanner sc = new Scanner(System.in);
-        Connection con = ConnectDB();
+
         boolean passw = true;
         while (true) {
             if(passw)System.out.println("Enter Email-Id:");
