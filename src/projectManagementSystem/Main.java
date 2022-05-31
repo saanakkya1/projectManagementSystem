@@ -67,17 +67,12 @@ String pass = "Beves@Nevile";//1sc.nextLine();//read_password();
                         switch (rs1.getInt("role_id")) {
                             case 1 -> {
                                 User.main();
-                                break;
                             }
                             case 2 -> {
-                                System.out.print("\033[H\033[2J");
-                                System.out.flush();
                                 Manager.main(rs1.getInt("user_id"));
-                                break;
                             }
                             case 3 -> {
                                 Admin.main();
-                                break;
                             }
                         }
 
@@ -85,9 +80,8 @@ String pass = "Beves@Nevile";//1sc.nextLine();//read_password();
                     } else {
                         System.out.println("Incorrect password Re-Enter Password Again...");
                     }
-//                    System.out.printf("\nLogged In as:\t%s\n",rs1.getString("first_name"));
                 }
-                //break;
+
             }
                 else{
                     System.out.println("Enter a valid Email-Id:");

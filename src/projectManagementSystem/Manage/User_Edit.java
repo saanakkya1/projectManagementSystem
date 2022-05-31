@@ -46,21 +46,20 @@ public class User_Edit {
 
                 //System.out.println("From manager");
                 System.out.println("""
-                        Enter your choice for User_Edit Menu
                         \t1.Add User
                         \t2.Modify User
-                        \t3.Review User_Edit
+                        \t3.Review User
                         \t4.Remove User
                         \t5.View users
                         \t6.Exit
-                        """);
+                        Enter your choice for User  Menu""");
                 while(true){
                     int choice = getChoice(6,"Choice");
                     if(choice>=1 && choice<=6){
                         switch (choice) {
                             case 1 -> User_Edit.add(user_id);
                             case 2 -> {
-                                System.out.println("Enter " + table_name + " id of the " + table_name + " to review");
+                                System.out.println("Enter " + table_name + " id of the " + table_name + " to Edit");
                                 int user_id = checkId(con, table_name, "USER ID");
                                 User_Edit.Edit(table_name, user_id);
                             }
@@ -185,7 +184,7 @@ public class User_Edit {
 
         try{
             String sqlqry = "select user_id,first_name,last_name,email,DOB,join_date,last_login,password ,role_title from user join role on user.role_id=role.role_id  where user_id=?";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, user_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();

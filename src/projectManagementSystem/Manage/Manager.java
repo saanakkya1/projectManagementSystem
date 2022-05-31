@@ -35,13 +35,12 @@ public class Manager {
             System.out.print("\033[H\033[2J");
             System.out.flush();*/
         System.out.println("""
-                Enter your choice
                 \t1.Project Menu
                 \t2.User menu
                 \t3.Tasks Menu
                 \t4.Bugs Menu
                 \t5.Exit
-                """);
+                Enter your choice""");
         while(true){
 int choice = projectManagementSystem.GetInput.getChoice(5,"Choice");
 
@@ -51,15 +50,12 @@ int choice = projectManagementSystem.GetInput.getChoice(5,"Choice");
                     Project.main(user_id);
                     break;
                 case 2:
-                    System.out.println("USER EDIT");
                     User_Edit.main();
                     break;
                 case 3:
-                    System.out.println("TASK");
                     Task.main(user_id);
                     break;
                 case 4:
-                    System.out.println("BUGS");
                     Bugs.main(user_id);
                     break;
                 case 5: break;

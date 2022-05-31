@@ -22,7 +22,7 @@ public class Project {
     private Timestamp created_date;
     private int project_status;
     private static ArrayList<String> col_labels = new ArrayList<>();
-    private static ArrayList<String> col_types = new ArrayList<>();
+    private static ArrayList<String> col_types  = new ArrayList<>();
     private static final HashMap<String,String> labels_types = new HashMap<>();
 
     static BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
@@ -49,8 +49,7 @@ public class Project {
                         \t4.Close Project
                         \t5.View Projects
                         \t6.Exit
-                        Enter your choice for Project Menu
-                        """);
+                        Enter your choice for Project Menu""");
                 while(true){
                     int choice = Integer.parseInt(GetInput.getValidInput(read.readLine(),"Choice"));
                     if(choice>=1 && choice<=6){
@@ -66,7 +65,7 @@ public class Project {
                             }
                             case 3 -> {
                                 System.out.println("Enter " + table_name + " id of the " + table_name + " to Review");
-                                int project_id = checkId(con,table_name,"PROJECT ID");
+                                int project_id = checkIfClosed(con,table_name,table_name.toUpperCase()+" ID","status");
                                 Project.review(table_name,project_id);
                             }
                             case 4 -> {
@@ -140,7 +139,7 @@ public class Project {
         }
         System.out.printf("%d. Exit\n", i+1);
         System.out.println("Which Field Do you Want to Edit");
-        int choice = getChoice(col_labels.size(), "Choice") - 1;
+        int choice = getChoice(col_labels.size()+1, "Choice") - 1;
         if (choice == i) {return;}
         String col = col_labels.get(choice);
         System.out.printf("\nEnter Value of %s\n", col.toUpperCase());
@@ -168,7 +167,7 @@ public class Project {
         try{
 
             String sqlqry = "select project_id,project_name,created_date,created_by,status_title from " +table_name+ " join status on status = status_id where "+table_name+"_id=? and status <> 5";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, project_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();

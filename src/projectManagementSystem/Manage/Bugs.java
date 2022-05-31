@@ -48,14 +48,14 @@ public class Bugs {
 
                 //System.out.println("From manager");
                 System.out.println("""
-                        Enter your choice for Bugs Menu
+                        
                         \t1.Add Bugs
                         \t2.Modify Bugs
                         \t3.Review Bugs
                         \t4.Close Bugs
                         \t5.View Bugs
                         \t6.Exit
-                        """);
+                        Enter your choice for Bugs Menu""");
                 while(true){
                     int choice = getChoice(6,"Choice");
                     if(choice>=1 && choice<=6){
@@ -65,14 +65,14 @@ public class Bugs {
 
                             }
                             case 2 -> {
-                                System.out.println("Enter " + table_name + " id of the " + table_name + " to review");
-                                int bug_id = Integer.parseInt(GetInput.getValidInput(read.readLine(), table_name.toUpperCase() + " ID"));
+                                System.out.println("Enter " + table_name + " id of the " + table_name + " to Edit");
+                                int bug_id = checkId(con,table_name,"BUG ID");
                                 Bugs.Edit(user_id, table_name, bug_id);
 
                             }
                             case 3 -> {
-                                System.out.println("Enter " + table_name + " id of the " + table_name + " to Edit");
-                                int bug_id = getInt("Bug ID");
+                                System.out.println("Enter " + table_name + " id of the " + table_name + " to Review");
+                                int bug_id = checkIfClosed(con,"bug",table_name.toUpperCase()+" ID","status");
                                 Bugs.review(table_name, bug_id);
 
                             }
@@ -158,7 +158,7 @@ public class Bugs {
         String query = "update " + table_name + " set " + col + "=? where " + table_name + "_id=" + bug_id;
         PreparedStatement stmt = con.prepareStatement(query, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
         if (labels_types.get(col).equalsIgnoreCase("INT")) {
-            stmt.setInt(1, getInt(col));
+            stmt.setInt(1, checkId(con,"project",col));
         } else if (labels_types.get(col).equalsIgnoreCase("TINYINT")) {
             stmt.setInt(1, getChoice(5, col));
         } else if (labels_types.get(col).equalsIgnoreCase("VARCHAR")) {
@@ -179,8 +179,8 @@ public class Bugs {
 
         try{
 
-            String sqlqry = "select bug_id,bug_name,description,reported_time,project_id, sevr_title,status_title from bug join status on status=status_id join bug_sevr on sevr=sevr_id where "+table_name+"_id=? and status <> 5";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            String sqlqry = "select bug_id,bug_name,description,reported_time,project_id from bug join status on status=status_id join bug_sevr on sevr=sevr_id where "+table_name+"_id=? and status <> 5";
+            PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, project_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -199,7 +199,7 @@ public class Bugs {
     }
     public static void close(String table_name,int status,int bug_id) throws SQLException {
         try {
-            String sqlqry = "select bug_id,bug_name,description,reported_time,project_id, sevr_title,status_title from bug join status on status=status_id join bug_sevr on sevr=sevr_id  where bug_id=? and status <> 5";
+            String sqlqry = "select bug_id,bug_name,description,reported_time,project_id from bug where bug_id=? and status <> 5";
             PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmnt.setInt(1, bug_id);
             ResultSet rs = stmnt.executeQuery();
@@ -232,80 +232,5 @@ public class Bugs {
             close(table_name,5,bug_id);
         }
     }
-    /*public static void close(String table_name) throws SQLException, IOException {
-        System.out.println("Enter "+table_name+" id");
-        int project_id = getInt(table_name+" Id");
-        String sqlqry = "select * from " +table_name+ " where "+table_name+"_id=?";
-        PreparedStatement stmnt = con.prepareStatement(sqlqry);
-        stmnt.setInt(1, project_id);
-        ResultSet rs = stmnt.executeQuery();
-        ResultSetMetaData rsmd = rs.getMetaData();
-        int col_count = rsmd.getColumnCount();
-        rs.next();
-        String query = String.format("insert into project_closed values ("+"?,".repeat(col_count)+" );").replaceFirst(", ","");
-        PreparedStatement stmt = con.prepareStatement(query);
-        for (int i = 1; i <=col_count; i++) {
-            String col_type = rsmd.getColumnTypeName(i);
-            //stmt.setString(i,rsmd.getColumnName(i));
-            if (col_type.equalsIgnoreCase("INT")){
-                stmt.setInt(i,rs.getInt(i));
-            }
-            if (col_type.equalsIgnoreCase("TINYINT")){
-                stmt.setInt(i,rs.getInt(i));
-            }
-            else if (col_type.equalsIgnoreCase("VARCHAR")) {
-                stmt.setString(i,rs.getString(i));
-            }
-            else if (col_type.equalsIgnoreCase("timestamp")) {
-                stmt.setTimestamp(i,rs.getTimestamp(i));
-            }
-        }
-        String[] state = stmt.toString().split(": ",2)[1].split("values ");
-        String s = state[0].replace("'","`")+"values "+state[1];
-        System.out.println(s);
-        Statement statement = con.createStatement();
-        int result = statement.executeUpdate(s);
-        if(result==1){
-            for(int j =1;j<=col_count;j++) {
-                if(j == rsmd.getColumnCount()) System.out.printf("| %-20s |", rs.getString(j));
-                else System.out.printf("| %-20s ", rs.getString(j));
-            }
-            System.out.println("\nAre You Sure to Close The "+ table_name +" [yes/NO]");
-            String is_sure = sc.next();
-            if(is_sure.equalsIgnoreCase("yes")) con.commit();
-            con.rollback();
 
-        }
-        else{
-            System.out.println("Enter "+table_name.toUpperCase()+" Id Again....");
-
-        }
-
-    }*/
-/*    public static void view() throws SQLException {
-        String sql = "select * from bug";
-        PreparedStatement stmt = con.prepareStatement(sql,TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-        ResultSet rs = stmt.executeQuery();
-        ResultSetMetaData rsmd = rs.getMetaData();
-        StringBuilder sb = new StringBuilder();
-        rs.last();
-        int row_count= rs.getRow();
-        rs.beforeFirst();
-        for(int i = 1; i <= rsmd.getColumnCount(); i++)
-        {
-            sb.append(String.format("| %-20s",rsmd.getColumnLabel(i)));
-        }
-        System.out.println(sb);
-//        StringBuilder stringb = new StringBuilder();
-
-        for(int i = 1; i <= row_count; i++) {
-            rs.next();
-
-            for(int j =1;j<=rsmd.getColumnCount();j++) {
-                System.out.printf("| %-20s", rs.getString(j));
-            }
-            System.out.println("");
-        }
-        System.out.println("\n\n\n");
-    }*/
 }
