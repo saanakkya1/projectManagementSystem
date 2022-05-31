@@ -175,13 +175,13 @@ public class Bugs {
             Edit(user_id, table_name, bug_id);
         }
     }
-    public static void review(String table_name,int project_id) throws IOException {
+    public static void review(String table_name,int bug_id) throws IOException {
 
         try{
 
             String sqlqry = "select bug_id,bug_name,description,reported_time,project_id from bug join status on status=status_id join bug_sevr on sevr=sevr_id where "+table_name+"_id=? and status <> 5";
             PreparedStatement stmnt = con.prepareStatement(sqlqry);
-            stmnt.setInt(1, project_id);
+            stmnt.setInt(1, bug_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
             int col_count = rsmd.getColumnCount();
@@ -194,7 +194,7 @@ public class Bugs {
         }
         catch (InputMismatchException | NumberFormatException | SQLException e){
             System.out.println("Enter a valid "+table_name+"_id which is not closed");
-            review(table_name,project_id);
+            review(table_name,bug_id);
         }
     }
     public static void close(String table_name,int status,int bug_id) throws SQLException {
@@ -228,7 +228,7 @@ public class Bugs {
             }
         }
         catch(InputMismatchException|IOException e ){
-            System.out.println("Enter a valid "+table_name+"_id which is not closed");
+            System.out.println("Enter a valid "+ table_name +"_id which is not closed");
             close(table_name,5,bug_id);
         }
     }

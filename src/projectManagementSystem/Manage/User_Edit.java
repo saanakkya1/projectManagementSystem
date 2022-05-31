@@ -99,8 +99,8 @@ public class User_Edit {
             String last_name = getValidInput(read.readLine(), table_name.toUpperCase() + " Name");
             System.out.println("Enter user email :");
             String email = getEmail(con);
-            System.out.println("Enter role id of the user :");
-            int role_id = getChoice(3,"Choice");
+            //System.out.println("Enter role id of the user :");
+            int role_id =1;// getChoice(3,"Choice");
             System.out.println("Enter DOB of the user :");
             Date DOB = Date.valueOf(getDate());
             System.out.println("Enter Join Date of the user :");

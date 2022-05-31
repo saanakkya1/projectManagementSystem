@@ -1,4 +1,7 @@
 package projectManagementSystem;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.*;
 import java.sql.Connection;
 import java.util.Scanner;
@@ -12,7 +15,7 @@ import static projectManagementSystem.Connect_DB.Connect_DB.ConnectDB;
 
 public class Main {
     static Connection con;
-
+    static BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
     static {
         try {
             con = ConnectDB();
@@ -40,14 +43,14 @@ public class Main {
         console.printf("Password entered was: %s%n", new String(passwordArray));
         return new String(passwordArray);
     }
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) throws SQLException, IOException {
         Scanner sc = new Scanner(System.in);
 
         boolean passw = true;
         while (true) {
             if(passw)System.out.println("Enter Email-Id:");
             passw = true;
-String email ="nbeves0@uol.com.br";// sc.nextLine();
+            String email =read.readLine();//"nbeves0@uol.com.br";// sc.nextLine();
             String sql = "Select * from user where email=?";
             PreparedStatement stmt = con.prepareStatement(sql);
             stmt.setString(1, email);
@@ -56,7 +59,7 @@ String email ="nbeves0@uol.com.br";// sc.nextLine();
             if (rs.next()) {
                 while (true) {
                     System.out.println("Enter password");
-String pass = "Beves@Nevile";//1sc.nextLine();//read_password();
+                    String pass = read.readLine();// "Beves@Nevile";//1sc.nextLine();//read_password();
                     String sql1 = "Select * from user where email=? and password=?";
                     PreparedStatement stmt1 = con.prepareStatement(sql1);
                     stmt1.setString(1, email);
@@ -64,15 +67,16 @@ String pass = "Beves@Nevile";//1sc.nextLine();//read_password();
                     ResultSet rs1 = stmt1.executeQuery();
                     if (rs1.next()) {
                         System.out.println("Logged In as:\t" + rs1.getString("first_name"));
-                        switch (rs1.getInt("role_id")) {
+                        int role_id = rs1.getInt("role_id");
+                        switch (role_id) {
                             case 1 -> {
-                                User.main();
+                                User.main(rs1.getInt("user_id"));
                             }
                             case 2 -> {
                                 Manager.main(rs1.getInt("user_id"));
                             }
                             case 3 -> {
-                                Admin.main();
+                                Admin.main(rs1.getInt("user_id"));
                             }
                         }
 
