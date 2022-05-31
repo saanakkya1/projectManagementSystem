@@ -204,7 +204,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
             con.rollback();
         }
     }*/
-    public static boolean chechPass(String pass) throws IOException {
+    public static boolean checkPass(String pass) throws IOException {
         System.out.println("Re-enter Password :");
         String pass1 = read.readLine();
         return pass1.equals(pass);
@@ -213,7 +213,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         String namePattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
         String pass = read.readLine();
 
-        while(pass.matches(namePattern) && !chechPass(pass) ){
+        while(pass.matches(namePattern) && !checkPass(pass) ){
             System.out.println("Enter a valid Password with atleast one symbol one UPPER CASE ONE lowercase and one NUMBER and more than 8 digits !");
             System.out.println("Enter Password: ");
             pass = read.readLine();
