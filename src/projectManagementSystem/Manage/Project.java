@@ -59,18 +59,18 @@ public class Project {
                                 Project.add(user_id,table_name);
                                                             }
                             case 2 -> {
-                                System.out.println("Enter" + table_name + " id of the " + table_name + " to Edit");
+                                System.out.println("Enter " + table_name + " id of the " + table_name + " to Edit");
                                 int project_id = checkId(con,table_name,"PROJECT ID");
                                 Project.Edit(user_id, table_name,project_id);
 
                             }
                             case 3 -> {
-                                System.out.println("Enter" + table_name + " id of the " + table_name + " to Edit");
+                                System.out.println("Enter " + table_name + " id of the " + table_name + " to Review");
                                 int project_id = checkId(con,table_name,"PROJECT ID");
-                                Project.review(table_name);
+                                Project.review(table_name,project_id);
                             }
                             case 4 -> {
-                                System.out.println("Enter" + table_name + " id of the " + table_name + " to Edit");
+                                System.out.println("Enter " + table_name + " id of the " + table_name + " to Close");
                                 int project_id = checkId(con,table_name,"PROJECT ID");
                                 Project.close(table_name, 5,project_id);
                             }
@@ -99,7 +99,7 @@ public class Project {
             System.out.printf("Enter Status of Project %s\n",project_name);
             int status = getChoice(5,"Status");
             String sql1 = "insert into project(project_name,created_by,status) values (?,?,?);";
-            PreparedStatement stmt = con.prepareStatement(sql1);
+            PreparedStatement stmt = con.prepareStatement(sql1, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmt.setString(1, project_name);
             stmt.setInt(2, user_id);
             stmt.setInt(3, status);
@@ -133,24 +133,19 @@ public class Project {
     }
 
     public static void Edit(int user_id, String table_name, int project_id) throws SQLException, IOException, ParseException {
-
-        col_labels.removeIf(e -> (e.equalsIgnoreCase("reported_time") || e.equalsIgnoreCase("created_by") || e.equalsIgnoreCase(table_name + "_id") || e.equalsIgnoreCase("created_date")));
-
-//        System.out.println(labels_types);
-        System.out.println("Which Field Do you Want to Edit");
+        col_labels.removeIf(e -> (e.equalsIgnoreCase("reported_time") || e.equalsIgnoreCase("created_by") || e.equalsIgnoreCase(table_name + "_id") || e.equalsIgnoreCase("created_date")));;
         int i;
         for (i = 0; i < col_labels.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, col_labels.get(i).replace("_", " ").toUpperCase());
         }
-        System.out.printf("%d. Exit\n", i);
+        System.out.printf("%d. Exit\n", i+1);
+        System.out.println("Which Field Do you Want to Edit");
         int choice = getChoice(col_labels.size(), "Choice") - 1;
-        if (choice == i) {
-            return;
-        }
+        if (choice == i) {return;}
         String col = col_labels.get(choice);
         System.out.printf("\nEnter Value of %s\n", col.toUpperCase());
-        String query = "update " + table_name + " set " + col + "=? where " + table_name + "_id=" + Project.project_id;
-        PreparedStatement stmt = con.prepareStatement(query);
+        String query = "update " + table_name + " set " + col + "=? where " + table_name + "_id=" + project_id;
+        PreparedStatement stmt = con.prepareStatement(query, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
         if (labels_types.get(col).equalsIgnoreCase("INT")) {
             stmt.setInt(1, getInt(col));
         } else if (labels_types.get(col).equalsIgnoreCase("TINYINT")) {
@@ -162,12 +157,18 @@ public class Project {
         }
         stmt.executeUpdate();
         getConfirmation(con);
+        review(table_name,project_id);
+        System.out.println("\nDo you want to Edit " + table_name + " again [y/N]?");
+        String close_another = GetInput.getValidInput(read.readLine(), "[y/N] ONLY");
+        if (close_another.equalsIgnoreCase("Y")) {
+            Edit(user_id, table_name, project_id);
+        }
     }
-    public static void review(String table_name) throws IOException {
+    public static void review(String table_name,int project_id) throws IOException {
         try{
 
             String sqlqry = "select project_id,project_name,created_date,created_by,status_title from " +table_name+ " join status on status = status_id where "+table_name+"_id=? and status <> 5";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry);
+            PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmnt.setInt(1, project_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -181,22 +182,23 @@ public class Project {
         }
         catch (InputMismatchException | NumberFormatException | SQLException e){
             System.out.println("Enter a valid "+table_name+"_id which is not closed");
-            review(table_name);
+            review(table_name,project_id);
         }
     }
     public static void close(String table_name, int status, int project_id) throws SQLException {
         try {
             String sqlqry = "select * from " + table_name + " where " + table_name + "_id=?";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry);
+            PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmnt.setInt(1, project_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
             int col_count = rsmd.getColumnCount();
             rs.next();
             String query = "update " + table_name + " set status = " + status + " where " + table_name + "_id=?";
-            PreparedStatement statement = con.prepareStatement(query);
-            statement.setInt(1, Project.project_id);
+            PreparedStatement statement = con.prepareStatement(query, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            statement.setInt(1, project_id);
             int result = statement.executeUpdate();
+            rs.refreshRow();
             if (result > 0) {
                 System.out.println("\nAre You Sure to Close The " + table_name + " [y/N]");
                 String is_sure = GetInput.getValidInput(read.readLine(),"[y/N] ONLY");
@@ -212,7 +214,8 @@ public class Project {
                     close("project", 5, project_id);
                 }
             } else {
-                System.out.println("Enter " + table_name.toUpperCase() + " Id Again....");close("project",5, project_id);
+                System.out.println("Enter " + table_name.toUpperCase() + " Id Again....");
+                close("project",5, project_id);
             }
         }
         catch(InputMismatchException|IOException e ){

@@ -116,7 +116,9 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         return id;
     }
     public static boolean checkClosed(Connection con,String table_name,String s,int id) throws SQLException {
-        String query = String.format("select * from %s where %s_id=%d and %s <> 5",table_name,table_name,id,s);
+        String query="";
+        if(table_name.equalsIgnoreCase("user")){  query = String.format("select * from %s where %s_id=%d and %s <> 0",table_name,table_name,id,s);}
+        else{  query = String.format("select * from %s where %s_id=%d and %s <> 5",table_name,table_name,id,s);}
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery(query);
         return rs.next();
@@ -125,7 +127,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
     public static int checkIfClosed(Connection con,String table_name,String field,String s) throws SQLException, IOException {
         int id = getInt(field);
         while(!checkClosed(con,table_name,s,id)){
-            System.out.printf("Enter a valid %s \n",field);
+            System.out.printf("Enter a valid %s which is not closed\n",field);
             id = getInt(field);
         }
         return id;
@@ -141,6 +143,27 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         }
         return Name;
     }
+    public static boolean checkEmail(Connection con,String email) throws SQLException{
+        String query = "select * from user where email=? ";
+        PreparedStatement stmt = con.prepareStatement(query);
+        stmt.setString(1,email);
+        ResultSet rs = stmt.executeQuery();
+        return rs.next();
+    }
+    public static String getEmail(Connection con) throws IOException, SQLException {
+        String emailPat = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$";
+        String email = read.readLine();
+
+        while (email.matches(emailPat)&&checkEmail(con,email) ) {
+            System.out.println("E-mail already taken.......\nPlease use another E-mail");
+            email = read.readLine();
+        }
+        if(!email.matches(emailPat)) {
+            System.out.println("Enter a valid emain in the format 'abc@def.ghi' ");
+            getEmail(con);
+        }
+            return email;
+        }
 //    ^\d{4}-\d{2}-\d{2}$
     public static Timestamp getTimestamp() throws IOException, ParseException {
         String namePattern = "^\\d{4}-\\d{2}-\\d{2}$";
@@ -154,7 +177,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         return (Timestamp) date;
     }
     public static String getDate() throws IOException, ParseException {
-        String namePattern = "^\\d{4}-\\d{2}-\\d{2}$";
+        String namePattern = "^\\d{4}\\-(0?[1-9]|1[012])\\-(0?[1-9]|[12][0-9]|3[01])$";
         String d = read.readLine();
         while(!d.matches(namePattern)){
             System.out.println("Enter a valid Date in [YYYY-MM-DD ] format only!");
@@ -181,15 +204,25 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
             con.rollback();
         }
     }*/
-    void getpassword() throws IOException{
+    public static boolean chechPass(String pass) throws IOException {
+        System.out.println("Re-enter Password :");
+        String pass1 = read.readLine();
+        return pass1.equals(pass);
+    }
+    public static String getPassword() throws IOException{
         String namePattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
         String pass = read.readLine();
 
-        while(!pass.matches(namePattern)){
-            System.out.println("Enter a valid name with alphabets only!");
-            System.out.println("Enter Name: ");
+        while(pass.matches(namePattern) && !chechPass(pass) ){
+            System.out.println("Enter a valid Password with atleast one symbol one UPPER CASE ONE lowercase and one NUMBER and more than 8 digits !");
+            System.out.println("Enter Password: ");
             pass = read.readLine();
         }
+        if(!pass.matches(namePattern)){
+            System.out.println("Both Passwords DONOT MATCH RE-ENTER PASSWORDS AGAIN");
+            getPassword();
+        }
+        return pass;
     }
     public static void getConfirmation(Connection con) throws IOException, SQLException{
         System.out.print("\n\tAre you sure that the details give above are correct? [y/N] ");

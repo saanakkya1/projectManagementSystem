@@ -21,11 +21,6 @@ import static projectManagementSystem.GetInput.getConfirmation;
 
 public class Task {
     private static final String table_name = "task";
-    private static int task_id;
-    private String task_name;
-    private int task_created_by;
-    private Timestamp reported_date;
-    private int status;
     private static ArrayList<String> col_labels = new ArrayList<>();
     private static ArrayList<String> col_types = new ArrayList<>();
     private static final HashMap<String,String> labels_types = new HashMap<>();
@@ -44,7 +39,11 @@ public class Task {
             System.out.println("[-] Database Not Connected Please Make sure The DB server is running...");
         }
     }
-        public static void main(int user_id) throws SQLException{
+
+    public Task() {
+    }
+
+    public static void main(int user_id) throws SQLException{
             try{
                 Scanner sc = new Scanner(System.in);
 
@@ -69,19 +68,22 @@ public class Task {
                             }
                             case 2:
                             {
-                                System.out.println("Enter "+table_name+" id of the "+ table_name+" to review");
+                                System.out.println("Enter "+table_name+" id of the "+ table_name+" to Edit");
                                 int project_id = Integer.parseInt(GetInput.getValidInput(read.readLine(),table_name.toUpperCase()+" ID"));
                                 Task.Edit(user_id,table_name,project_id);
                                 break;
                             }
                             case 3:
-                            {System.out.println("Enter"+table_name+" id of the "+table_name+" to Edit");
+                            {System.out.println("Enter"+table_name+" id of the "+table_name+" to Review");
                                 int project_id = getInt("Project ID");
                                 Task.review(table_name,project_id);
                                 break;}
                             case 4:
-                            {Task.close(table_name,5);
-                                break;}
+                            {
+                                System.out.println("Enter "+table_name +" id");
+                                int task_id = checkIfClosed(con,"task",table_name.toUpperCase()+" ID","status");
+                                Task.close(table_name,5,task_id);
+                                }
                             case 5: {PrintDB(con,table_name);}
                         }
                         if(choice==6)break;
@@ -113,7 +115,7 @@ public class Task {
             System.out.printf("Enter Status of task %s\n", task_name);
             int status = getChoice(5, "Status of task");
             String sql1 = "insert into task(task_name,description,project_id,status) values (?,?,?,?);";
-            PreparedStatement stmt = con.prepareStatement(sql1);
+            PreparedStatement stmt = con.prepareStatement(sql1, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmt.setString(1, task_name);
             stmt.setString(2, task_description);
             stmt.setInt(3, project_id);
@@ -142,18 +144,19 @@ public class Task {
     }
     public static void Edit(int user_id,String table_name,int project_id) throws SQLException, IOException, ParseException {
         col_labels.removeIf(e -> (e.equalsIgnoreCase("reported_time") || e.equalsIgnoreCase("created_by") || e.equalsIgnoreCase(table_name + "_id") || e.equalsIgnoreCase("created_date")));
-        System.out.println("Which Field Do you Want to Edit");
+
         int i;
         for (i = 0; i < col_labels.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, col_labels.get(i).replace("_", " ").toUpperCase());
         }
         System.out.printf("%d. Exit\n", i);
+        System.out.println("Which Field Do you Want to Edit");
         int choice = getChoice(col_labels.size(), "Choice") - 1;
         if(choice==i) {return;}
         String col = col_labels.get(choice);
         System.out.printf("\nEnter Value of %s\n", col.toUpperCase());
         String query = "update " + table_name + " set " + col + "=? where " + table_name + "_id=" + project_id;
-        PreparedStatement stmt = con.prepareStatement(query);
+        PreparedStatement stmt = con.prepareStatement(query, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
         if (labels_types.get(col).equalsIgnoreCase("INT")) {
             System.out.println("INT");
             stmt.setInt(1, getInt(col));
@@ -166,6 +169,7 @@ public class Task {
         }
         stmt.executeUpdate();
         getConfirmation(con);
+        review(table_name,project_id);
         System.out.println("\nDo you want to Edit another " + table_name + "[y/N]?");
         String close_another = GetInput.getValidInput(read.readLine(), "[y/N] ONLY");
         if (close_another.equalsIgnoreCase("Y")) {
@@ -176,7 +180,7 @@ public class Task {
 
         try{
             String sqlqry = "select task_id,task_name,description,reported_time,project_id,status_title from task join status on status=status_id where "+table_name+"_id=? and status <> 5";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry);
+            PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmnt.setInt(1, project_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -193,21 +197,20 @@ public class Task {
             review(table_name,project_id);
         }
     }
-    public static void close(String table_name,int status) throws SQLException {
+    public static void close(String table_name,int status,int task_id) throws SQLException {
         try {
-            System.out.println("Enter "+table_name +" id");
-            int task_id = checkIfClosed(con,"task",table_name.toUpperCase()+" ID","status");
-            String sqlqry = "select task_id,task_name,description,reported_time,project_id, status_title from task join status on status=status_id where task_id=? and status <> 5";
-            PreparedStatement stmnt = con.prepareStatement(sqlqry);
+                        String sqlqry = "select task_id,task_name,description,reported_time,project_id, status_title from task join status on status=status_id where task_id=? and status <> 5";
+            PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmnt.setInt(1, task_id);
             ResultSet rs = stmnt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
             int col_count = rsmd.getColumnCount();
             rs.next();
             String query = "update " + table_name + " set status = " + status + " where " + table_name + "_id=?";
-            PreparedStatement statement = con.prepareStatement(query);
+            PreparedStatement statement = con.prepareStatement(query, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             statement.setInt(1, task_id);
             int result = statement.executeUpdate();
+            rs.refreshRow();
             if (result > 0) {
                 //System.out.println("\nAre You Sure to Close The " + table_name + " [y/N]");
                 getConfirmation(con);
@@ -218,15 +221,15 @@ public class Task {
                 System.out.println("\nDo you want to close another " + table_name + "[y/N]?");
                 String close_another = GetInput.getValidInput(read.readLine(),"[y/N] ONLY");
                 if (close_another.equalsIgnoreCase("yes")) {
-                    close(table_name, 5);
+                    close(table_name, 5,task_id);
                 }
             } else {
-                System.out.println("Enter " + table_name.toUpperCase() + " Id Again....");close(table_name,5);
+                System.out.println("Enter " + table_name.toUpperCase() + " Id Again....");close(table_name,5,task_id);
             }
         }
         catch(InputMismatchException|IOException e ){
             System.out.println("Enter a valid "+table_name+"_id which is not closed");
-            close(table_name,5);
+            close(table_name,5,task_id);
         }
     }
 
