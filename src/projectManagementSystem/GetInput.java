@@ -77,7 +77,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         return val;
     }
     public static int getChoice(int end,String field) throws IOException {
-        String namePattern = String.format("^[1-%d]\\s*$",end);// "^(?=.*[1-"+end+"])(?=\\S+$).+$";
+        String namePattern = String.format("^[1-%d]{1,2}\\s*$",end);// "^(?=.*[1-"+end+"])(?=\\S+$).+$";
         String choice = read.readLine().strip();
         while(!choice.matches(namePattern)){
             System.out.printf("Enter a valid %s with numbers [1-%d] only!\n",field,end);
@@ -93,13 +93,41 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         String Num = read.readLine();
         while(!Num.matches(namePattern)){
 //            System.out.println("Enter a numbers only!");
-            System.out.printf("Enter %s:\n [NUMBERS ONLY]",field);
+            System.out.printf("Enter %s:\n [NUMBERS ONLY]\n",field);
             Num = read.readLine();
 
         }
 //        System.out.println(Num);
         return Integer.parseInt(Num);
 
+    }
+    public static int checkID_table(Connection con, String table_name, int user_id) throws SQLException, IOException {
+        String query="";
+        if ("project".equals(table_name)) {
+            query = "select distinct project.project_id,project_name,status_title from project join user_project on project.project_id=user_project.project_id join status on project.status=status_id join user on user_project.user_id=user.user_id join role on user.role_id=role.role_id where user.user_id=? and project.status<=2 order by project.project_id;";
+        } else if ("task".equals(table_name)) {
+            query = "select distinct task.task_id,task_name,status_title,project_name from task join status on task.status=status_id join user_task on user_task.task_id=task.task_id join project on task.project_id=project.project_id where user_task.user_id=? and status_id<=2 order by task.task_id ;";
+        } else if ("bug".equals(table_name)) {
+            query = "select distinct bug.bug_id, bug_name,status_title,project_name from bug join status on bug.status=status_id join user_bug on user_bug.bug_id=bug.bug_id join project on bug.project_id=project.project_id where user_bug.user_id=? and status_id<=2 order by bug.bug_id;";
+        }
+        PreparedStatement stmnt = con.prepareStatement(query);
+        stmnt.setInt(1, user_id);
+        ResultSet rs = stmnt.executeQuery();
+        ResultSetMetaData rsmd = rs.getMetaData();
+        ArrayList<Integer> ids = new ArrayList<>();
+        ArrayList <String> names = new ArrayList<>();
+        while (rs.next()){
+            ids.add(rs.getInt(table_name+"_id"));
+            names.add(rs.getString(table_name+"_name"));
+
+        }
+        for(int i=0;i<ids.size();i++){
+            System.out.printf("%d. %s\n",i+1,names.get(i));
+        }
+
+        int choice = getChoice(ids.size(),"Choice");
+
+        return ids.get(choice-1);
     }
     public static boolean checkExists(Connection con,String table_name,int id) throws SQLException {
         String query = String.format("select * from %s where %s_id=%d limit 1",table_name,table_name,id);
@@ -159,7 +187,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
             email = read.readLine();
         }
         if(!email.matches(emailPat)) {
-            System.out.println("Enter a valid emain in the format 'abc@def.ghi' ");
+            System.out.println("Enter a valid email in the format 'abc@def.ghi' ");
             getEmail(con);
         }
             return email;
@@ -214,7 +242,7 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         String pass = read.readLine();
 
         while(pass.matches(namePattern) && !checkPass(pass) ){
-            System.out.println("Enter a valid Password with atleast one symbol one UPPER CASE ONE lowercase and one NUMBER and more than 8 digits !");
+            System.out.println("Password should contain At least 8 characters \n" + " A mixture of both uppercase and lowercase letters.\n" +"    A mixture of letters and numbers.\n" + "    Inclusion of at least one special character, e.g., ! @ # ? ]");
             System.out.println("Enter Password: ");
             pass = read.readLine();
         }
@@ -224,8 +252,8 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         }
         return pass;
     }
-    public static void getConfirmation(Connection con) throws IOException, SQLException{
-        System.out.print("\n\tAre you sure that the details give above are correct? [y/N] ");
+    public static boolean getConfirmation(Connection con) throws IOException, SQLException{
+        System.out.print("\nAre you sure that the details give above are correct? [y/N] ");
         String ch = read.readLine();
         while(!ch.equalsIgnoreCase("y") && !ch.equalsIgnoreCase("n")){
             System.out.println("Enter either Y or N: ");
@@ -233,12 +261,31 @@ public static ArrayList<String> getColNames(String table_name) throws IOExceptio
         }
 
         if(ch.equalsIgnoreCase("Y")){
-            System.out.println("Saving the entered details .....");
+            System.out.println("Saving the details.....");
             con.commit();
+            return true;
         }
         else if(ch.equalsIgnoreCase("N")){
-            System.out.println("Rolling back the changes.....");
+            System.out.println("Rolling back.....");
             con.rollback();
+            return false;
         }
+        return false;
+    }
+
+    public static int getRole(Connection con,int user_id) throws SQLException {
+        String query = String.format("select role_id from user where user_id=%d limit 1",user_id);
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+        rs.next();
+        return rs.getInt("role_id");
+    }
+
+    public static int getUserID(Connection con) throws SQLException {
+        String query ="select user_id from user order by user_id desc limit 1;";
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+        rs.next();
+        return rs.getInt("user_id");
     }
 }

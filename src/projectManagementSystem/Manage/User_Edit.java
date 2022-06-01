@@ -1,6 +1,5 @@
 package projectManagementSystem.Manage;
 
-import projectManagementSystem.Connect_DB.Connect_DB;
 import projectManagementSystem.GetInput;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,7 +39,7 @@ public class User_Edit {
             System.out.println("[-] Database Not Connected Please Make sure The DB server is running...");
         }
     }
-        public static void main(){
+        public static void main(int user_id){
             try{
                 Scanner sc = new Scanner(System.in);
 
@@ -57,26 +56,26 @@ public class User_Edit {
                     int choice = getChoice(6,"Choice");
                     if(choice>=1 && choice<=6){
                         switch (choice) {
-                            case 1 -> User_Edit.add(user_id);
+                            case 1 -> User_Edit.add(getRole(con,user_id));
                             case 2 -> {
                                 System.out.println("Enter " + table_name + " id of the " + table_name + " to Edit");
-                                int user_id = checkId(con, table_name, "USER ID");
-                                User_Edit.Edit(table_name, user_id);
+                                int userid = checkId(con, table_name, "USER ID");
+                                User_Edit.Edit(table_name, userid);
                             }
                             case 3 -> {
                                 System.out.println("Enter " + table_name + " id of the " + table_name + " to review");
-                                int user_id = checkIfClosed(con, "user", table_name.toUpperCase() + " ID", "user_id");
-                                User_Edit.review(table_name, user_id);
+                                int userid = checkIfClosed(con, "user", table_name.toUpperCase() + " ID", "user_id");
+                                User_Edit.review(table_name, userid);
                             }
                             case 4 -> {
                                 System.out.println("Enter " + table_name + " id of the " + table_name + " to review");
-                                int user_id = checkIfClosed(con, "user", table_name.toUpperCase() + " ID", "role_id");
-                                User_Edit.close(table_name, 0, user_id);
+                                int userid = checkIfClosed(con, "user", table_name.toUpperCase() + " ID", "role_id");
+                                User_Edit.close(table_name, 0, userid);
                             }
-                            case 5 -> Connect_DB.PrintDB(con, table_name);
+                            case 5 -> view(con); //Connect_DB.PrintDB(con, table_name);
                         }
                         if(choice==6)break;
-                        main();
+                        main(user_id);
                         break;
                     }
                     else{
@@ -86,12 +85,12 @@ public class User_Edit {
             }
             catch (InputMismatchException e){
                 System.out.println("Enter a valid input");
-                main();
+                main(user_id);
             } catch (SQLException | IOException | ParseException e) {
                 e.printStackTrace();
             }
         }
-    public static void add(int user_id) throws SQLException, IOException {
+    public static void add(int role_id) throws SQLException, IOException {
         try {
             System.out.println("Enter First name :");
             String first_name = getValidInput(read.readLine(), table_name.toUpperCase() + " Name");
@@ -99,23 +98,33 @@ public class User_Edit {
             String last_name = getValidInput(read.readLine(), table_name.toUpperCase() + " Name");
             System.out.println("Enter user email :");
             String email = getEmail(con);
-            //System.out.println("Enter role id of the user :");
-            int role_id =1;// getChoice(3,"Choice");
+            int role=1;
+            switch (role_id){
+                case 1, 2 -> {
+                }
+                case 3 -> {
+                    System.out.println("Enter role_id of user");
+                    getChoice(3,"Role ID");
+                }
+            }
+            // getChoice(3,"Choice");
             System.out.println("Enter DOB of the user :");
             Date DOB = Date.valueOf(getDate());
             System.out.println("Enter Join Date of the user :");
             Date join_date = Date.valueOf(getDate());
+            System.out.println("Enter password");
+            String pass= getPassword();
             String sql1 = "insert into user (first_name, last_name,  email,role_id, DOB, join_date, password) values (?,?,?,?,?,?,?)";
             PreparedStatement stmt = con.prepareStatement(sql1);
             stmt.setString(1, first_name);
             stmt.setString(2, last_name);
             stmt.setString(3, email);
-            stmt.setInt(4, role_id);
+            stmt.setInt(4, role);
             stmt.setDate(5, DOB);
             stmt.setDate(6, join_date);
-            stmt.setString(7,last_name+"@"+first_name);
+            stmt.setString(7,pass);
             int i = stmt.executeUpdate();
-            GetInput.getConfirmation(con);
+            if(GetInput.getConfirmation(con)){
             PreparedStatement stmt1 = con.prepareStatement("select user_id,first_name,last_name,email,DOB,join_date,last_login,password ,role_title from user join role on user.role_id=role.role_id order by user_id", TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = stmt1.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -127,10 +136,16 @@ public class User_Edit {
             for (int j = 1; j <= rsmd.getColumnCount(); j++) {
                 System.out.printf("| %-25s", rs.getString(j));
             }
-            System.out.println("\n\n\n");
+            System.out.println("\n");
+                System.out.println("\nDo you want to Edit " + table_name + "[y/N]?");
+                String close_another = GetInput.getValidInput(read.readLine(), "[y/N] ONLY");
+                if (close_another.equalsIgnoreCase("Y")) {
+                    Edit(table_name,getUserID(con));
+                }
+            }
             if (i == 0) {
                 System.out.println("Please Re-Enter the details again");
-                add(user_id);
+                add(role_id);
             }
         }catch(SQLIntegrityConstraintViolationException e){
             System.out.println("Please user another email ");}
@@ -174,13 +189,13 @@ public class User_Edit {
         stmt.executeUpdate();
         getConfirmation(con);
         review(table_name,user_id);
-        System.out.println("\nDo you want to Edit another " + table_name + "[y/N]?");
+        System.out.println("\nDo you want to Edit another " + "Field of user " + "[y/N]?");
         String close_another = GetInput.getValidInput(read.readLine(), "[y/N] ONLY");
         if (close_another.equalsIgnoreCase("Y")) {
             Edit(table_name,user_id);
         }
     }
-    public static void review(String table_name,int user_id) throws IOException {
+    public static void review(String table_name,int user_id) throws IOException,SQLException {
 
         try{
             String sqlqry = "select user_id,first_name,last_name,email,DOB,join_date,last_login,password ,role_title from user join role on user.role_id=role.role_id  where user_id=?";
@@ -196,7 +211,7 @@ public class User_Edit {
             }
             System.out.println();
         }
-        catch (InputMismatchException | NumberFormatException | SQLException e){
+        catch (InputMismatchException | NumberFormatException  e){
             System.out.println("Enter a valid "+table_name+"_id ");
             review(table_name,user_id);
         }
@@ -238,6 +253,22 @@ public class User_Edit {
             close(table_name,0,user_id);
         }
     }
+public static void view(Connection con) throws SQLException {
+        String sql="Select user_id,first_name,last_name,email,role_title,DOB,join_date from user join role on user.role_id=role.role_id";
+        Statement stmt=  con.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+        ResultSetMetaData rsmd = rs.getMetaData();
+    int col_count = rsmd.getColumnCount();
+    rs.next();
+    while (rs.next()){
+    for (int j = 1; j <= col_count; j++) {
+        if (j == rsmd.getColumnCount()) System.out.printf("| %-25s |", rs.getString(j));
+        else System.out.printf("| %-25s ", rs.getString(j));
+    }
+    System.out.println();
+    }
+
+}
 
     }
 

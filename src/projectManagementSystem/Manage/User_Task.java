@@ -24,7 +24,7 @@ public class User_Task {
     }
     public static void assign(String table_name,int id_1,int id_2) throws  IOException {
         try {
-            
+
             String sql = String.format("insert into %s values(?,?)", table_name);
             PreparedStatement statement = con.prepareStatement(sql);
             statement.setInt(1, id_1);
@@ -33,7 +33,7 @@ public class User_Task {
             if (rs == 1) GetInput.getConfirmation(con);
         }
         catch (SQLException e){
-            System.out.println("[-] ID Doesnot EXIST CHECK ENTERED ID");
+            System.out.println("[-] ID Does not EXIST CHECK ENTERED ID");
         }
     }
 }

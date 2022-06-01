@@ -40,9 +40,6 @@ public class Task {
         }
     }
 
-    public Task() {
-    }
-
     public static void main(int user_id) throws SQLException{
             try{
                 Scanner sc = new Scanner(System.in);
@@ -85,7 +82,7 @@ public class Task {
                                 int task_id = checkIfClosed(con,"task",table_name.toUpperCase()+" ID","status");
                                 Task.close(table_name,5,task_id);
                                 }
-                            case 5: {PrintDB(con,table_name);}
+                            case 5: {view(con);}
                         }
                         if(choice==6)break;
                         main(user_id);
@@ -179,7 +176,7 @@ public class Task {
     public static void review(String table_name,int task_id) throws IOException {
 
         try{
-            String sqlqry = "select task_id,task_name,description,reported_time,project_id,status_title from task join status on status=status_id where task_id=? and status <> 5";
+            String sqlqry = "select task_id,task_name,description,reported_time,project_name,status_title from task join status on status=status_id join project on task.project_id=project.project_id where task_id=? and task.status <> 5";
             PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, task_id);
             ResultSet rs = stmnt.executeQuery();
@@ -233,5 +230,22 @@ public class Task {
             close(table_name,5,task_id);
         }
     }
+    public static void view(Connection con) throws SQLException {
+        String sql="select task_id,task_name,description,reported_time,project_name,status_title from task join status on status=status_id join project on task.project_id=project.project_id";
+        Statement stmt=  con.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int col_count = rsmd.getColumnCount();
+        rs.next();
+        while (rs.next()){
+            for (int j = 1; j <= col_count; j++) {
+                if (j == rsmd.getColumnCount()) System.out.printf("| %-25s |", rs.getString(j));
+                else System.out.printf("| %-25s ", rs.getString(j));
+            }
+            System.out.println();
+        }
 
     }
+    }
+
+

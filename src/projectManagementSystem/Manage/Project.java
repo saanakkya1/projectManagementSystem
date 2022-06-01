@@ -73,7 +73,7 @@ public class Project {
                                 int project_id = checkId(con,table_name,"PROJECT ID");
                                 Project.close(table_name, 5,project_id);
                             }
-                            case 5 -> PrintDB(con, table_name);
+                            case 5 ->  {view(con);}
                         }
                         if(choice==6)break;
                         main(user_id);
@@ -103,35 +103,41 @@ public class Project {
             stmt.setInt(2, user_id);
             stmt.setInt(3, status);
             int result = stmt.executeUpdate();
-            GetInput.getConfirmation(con);
-            System.out.println("Successfully Added The Project");
-            PreparedStatement stmt1= con.prepareStatement("select * from project",TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
-            ResultSet rs = stmt1.executeQuery();
-            ResultSetMetaData rsmd = rs.getMetaData();
-            for(int i = 1; i <= rsmd.getColumnCount(); i++)
-            {
-                System.out.printf("| %-20s",rsmd.getColumnLabel(i).toUpperCase().replace("_"," "));
-            }
-            System.out.println();
-            rs.last();
-            for(int j =1;j<=rsmd.getColumnCount();j++) {
-                System.out.printf("| %-20s", rs.getString(j));
-            }
-            System.out.println("\n\n\n");
-            if(result==0){
-                System.out.println("Please Re-Enter the details again");
-                add(user_id,table_name);
-            }
-            }
+            if(GetInput.getConfirmation(con)){
+                System.out.println("Successfully Added The Project");
+                PreparedStatement stmt1= con.prepareStatement("select * from project",TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+                ResultSet rs = stmt1.executeQuery();
+                ResultSetMetaData rsmd = rs.getMetaData();
+                for(int i = 1; i <= rsmd.getColumnCount(); i++)
+                {
+                    System.out.printf("| %-20s",rsmd.getColumnLabel(i).toUpperCase().replace("_"," "));
+                }
+                System.out.println();
+                rs.last();
+                for(int j =1;j<=rsmd.getColumnCount();j++) {
+                    System.out.printf("| %-20s", rs.getString(j));
+                }
+                System.out.println("\n");
+                int project_id = rs.getInt("project_id");
+                System.out.println("\nDo you want to Edit the " + table_name + " again [y/N]?");
+                String close_another = GetInput.getValidInput(read.readLine(), "[y/N] ONLY");
+                if (close_another.equalsIgnoreCase("Y")) {
+                    Edit(user_id, table_name,project_id);}
+                if(result==0){
+                    System.out.println("Please Re-Enter the details again");
+                    add(user_id,table_name);
+                }
+                }
+                }
         catch(SQLException e){
             System.out.println("Please renter the Details without mistakes");
             add(user_id,table_name);
-    } catch (IOException e) {
+    } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
     }
 
-    public static void Edit(int user_id, String table_name, int project_id) throws SQLException, IOException, ParseException {
+        public static void Edit(int user_id, String table_name, int project_id) throws SQLException, IOException, ParseException {
         col_labels.removeIf(e -> (e.equalsIgnoreCase("reported_time") || e.equalsIgnoreCase("created_by") || e.equalsIgnoreCase(table_name + "_id") || e.equalsIgnoreCase("created_date")));;
         int i;
         for (i = 0; i < col_labels.size(); i++) {
@@ -166,7 +172,7 @@ public class Project {
     public static void review(String table_name,int project_id) throws IOException {
         try{
 
-            String sqlqry = "select project_id,project_name,created_date,created_by,status_title from " +table_name+ " join status on status = status_id where "+table_name+"_id=? and status <> 5";
+            String sqlqry = "select project_id,project_name,created_date,first_name,status_title from " +table_name+ " join status on status = status_id join user on created_by=user_id where "+table_name+"_id=? and status <> 5";
             PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, project_id);
             ResultSet rs = stmnt.executeQuery();
@@ -221,6 +227,22 @@ public class Project {
             System.out.println("Enter a valid project_id");
             close("project",5, project_id);
     }
+    }
+    public static void view(Connection con) throws SQLException {
+        String sql="select project_id,project_name,created_date,first_name,status_title from project join status on status=status_id join user on created_by=user_id ";
+        Statement stmt=  con.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int col_count = rsmd.getColumnCount();
+        rs.next();
+        while (rs.next()){
+            for (int j = 1; j <= col_count; j++) {
+                if (j == rsmd.getColumnCount()) System.out.printf("| %-25s |", rs.getString(j));
+                else System.out.printf("| %-25s ", rs.getString(j));
+            }
+            System.out.println();
+        }
+
     }
     }
 

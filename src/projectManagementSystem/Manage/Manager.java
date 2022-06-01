@@ -1,18 +1,11 @@
 package projectManagementSystem.Manage;
 
-import projectManagementSystem.Manage.Bugs;
-import projectManagementSystem.Connect_DB.Connect_DB;
-import projectManagementSystem.Manage.Project;
-import projectManagementSystem.Manage.Task;
-import projectManagementSystem.Manage.User_Edit;
-import static projectManagementSystem.GetInput.*;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.InputMismatchException;
-import java.util.Scanner;
 
 import static projectManagementSystem.Connect_DB.Connect_DB.ConnectDB;
+import static projectManagementSystem.GetInput.checkId;
 import static projectManagementSystem.GetInput.getChoice;
 
 public class Manager {
@@ -26,40 +19,30 @@ public class Manager {
         }
     }
 
-    public static void main(int user_id){
+    public static void main(int user_id) throws SQLException{
         try{
-
-/*        //System.out.println("From manager");
-            System.out.print("\033[H\033[2J");
-            System.out.flush();*/
         System.out.println("""
                 \t1.Project Menu
                 \t2.User menu
                 \t3.Tasks Menu
                 \t4.Bugs Menu
                 \t5.Assign Work
-                \t6.Exit
+                \t6.Review Work
+                \t7.Exit
                 Enter your choice""");
         while(true){
-int choice = getChoice(6,"Choice");
+int choice = getChoice(7,"Choice");
 
-            if(choice>=1 && choice<=6){
-            switch (choice) {
-                case 1:
-                    Project.main(user_id);
-                    break;
-                case 2:
-                    User_Edit.main();
-                    break;
-                case 3:
-                    Task.main(user_id);
-                    break;
-                case 4:
-                    Bugs.main(user_id);
-                    break;
-                case 5: assignWork();
-            }
-            if(choice==6)break;
+            if(choice>=1 && choice<=7){
+                switch (choice) {
+                    case 1 -> Project.main(user_id);
+                    case 2 -> User_Edit.main(user_id);
+                    case 3 -> Task.main(user_id);
+                    case 4 -> Bugs.main(user_id);
+                    case 5 -> assignWork();
+                    case 6 -> viewWork();
+                }
+            if(choice==7)break;
             main(user_id);
             break;
             }
@@ -68,7 +51,7 @@ int choice = getChoice(6,"Choice");
         }
         }
         }
-catch (InputMismatchException | SQLException e){
+catch (InputMismatchException  e){
     System.out.println("Enter a valid input");
     main(user_id);
 } catch (IOException e) {
@@ -125,5 +108,70 @@ catch (InputMismatchException | SQLException e){
         }
 
     }
+    public static void viewWork() throws IOException,SQLException{
+        while(true){
+        System.out.println("""
+                \t1. Project
+                \t2. Task
+                \t3. Bug
+                \t4. Exit  
+                Enter your choice """);
+        int choice = getChoice(4,"Choice");
+            viewWork(choice);
+            if(choice==4)break;
+            viewWork();
 
+        }
+    }
+    public static void viewWork(int choice) throws IOException, SQLException {
+            if(choice>=1 && choice<=4){
+                switch (choice) {
+                    case 1:
+                    {
+                        String sql = "select project_id,project_name,created_date,first_name,status_title from project join status on status=status_id join user on created_by=user_id  where status_id=3";
+                        view(con,sql);
+                        break;
+                    }
+                    case 2:
+                    {
+                        String sql = "select task_id,task_name,description,reported_time,project_name,status_title from task join status on status=status_id join project on task.project_id=project.project_id where status_id=3";
+                        view(con,sql);
+                        break;
+                    }
+                    case 3:
+                    {
+                        String sql="select bug_id,bug_name,description,reported_time,project_name,sevr_title, status_title from bug join status on bug.status=status_id join bug_sevr on sevr=sevr_id join project on bug.project_id=project.project_id where status_id = 3";
+                        view(con,sql);
+                        break;
+                    }
+                    case 4:break;
+                }
+                }
+            else{
+                System.out.println("Enter a valid choice....");
+            }
+        }
+
+
+
+    public static void view(Connection con,String sql) throws SQLException {
+        Statement stmt=  con.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int col_count = rsmd.getColumnCount();
+        rs.next();
+        while (rs.next()){
+            for (int j = 1; j <= col_count; j++) {
+                if (j == rsmd.getColumnCount()) System.out.printf("| %-25s |", rs.getString(j));
+                else System.out.printf("| %-25s ", rs.getString(j));
+            }
+            System.out.println();
+        }
+        if(!rs.next()){
+            System.out.println("Nothing to show  !!!!");
+        }
+    }
+    public static void completeWork(){
+
+    }
 }

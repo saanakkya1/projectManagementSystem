@@ -81,7 +81,7 @@ public class Bugs {
                                 int bug_id = checkIfClosed(con,"bug",table_name.toUpperCase()+" ID","status");
                                 Bugs.close(table_name, 5, bug_id);
                             }
-                            case 5 -> PrintDB(con, table_name);
+                            case 5 ->  {view(con);}
                         }
                         if(choice==6)break;
                         main(user_id);
@@ -175,11 +175,11 @@ public class Bugs {
             Edit(user_id, table_name, bug_id);
         }
     }
-    public static void review(String table_name,int bug_id) throws IOException {
+    public static void review(String table_name,int bug_id) throws IOException ,SQLException {
 
         try{
 
-            String sqlqry = "select bug_id,bug_name,description,reported_time,project_id from bug join status on status=status_id join bug_sevr on sevr=sevr_id where "+table_name+"_id=? and status <> 5";
+            String sqlqry = "select bug_id,bug_name,description,reported_time,project_name,sevr_title, status_title from bug join status on bug.status=status_id join bug_sevr on sevr=sevr_id join project on bug.project_id=project.project_id where bug_id=? and bug.status <> 5";
             PreparedStatement stmnt = con.prepareStatement(sqlqry);
             stmnt.setInt(1, bug_id);
             ResultSet rs = stmnt.executeQuery();
@@ -192,14 +192,14 @@ public class Bugs {
             }
             System.out.println();
         }
-        catch (InputMismatchException | NumberFormatException | SQLException e){
+        catch (InputMismatchException | NumberFormatException  e){
             System.out.println("Enter a valid "+table_name+"_id which is not closed");
             review(table_name,bug_id);
         }
     }
     public static void close(String table_name,int status,int bug_id) throws SQLException {
         try {
-            String sqlqry = "select bug_id,bug_name,description,reported_time,project_id from bug where bug_id=? and status <> 5";
+            String sqlqry = "select bug_id,bug_name,description,reported_time,project_id from bug  where bug_id=? and status <> 5";
             PreparedStatement stmnt = con.prepareStatement(sqlqry, TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             stmnt.setInt(1, bug_id);
             ResultSet rs = stmnt.executeQuery();
@@ -232,5 +232,20 @@ public class Bugs {
             close(table_name,5,bug_id);
         }
     }
+    public static void view(Connection con) throws SQLException {
+        String sql="select bug_id,bug_name,description,reported_time,project_name,sevr_title, status_title from bug join status on bug.status=status_id join bug_sevr on sevr=sevr_id join project on bug.project_id=project.project_id";
+        Statement stmt=  con.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int col_count = rsmd.getColumnCount();
+        rs.next();
+        while (rs.next()){
+            for (int j = 1; j <= col_count; j++) {
+                if (j == rsmd.getColumnCount()) System.out.printf("| %-25s |", rs.getString(j));
+                else System.out.printf("| %-25s ", rs.getString(j));
+            }
+            System.out.println();
+        }
 
+    }
 }
